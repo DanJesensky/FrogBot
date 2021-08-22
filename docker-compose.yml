@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  mariadb:
+    image: 'mariadb:latest'
+    ports:
+      - '33060:3306'
+    environment:
+      MARIADB_ROOT_PASSWORD: 'password'
+      MARIADB_ROOT_HOST: '%'
+      MARIADB_DATABASE: 'frogbot'
+    volumes:
+      - 'mariadb_data:/data/db'
+
+volumes:
+  mariadb_data:
+    name: 'frogbot_mariadb'
