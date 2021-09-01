@@ -22,6 +22,12 @@ namespace FrogBot {
             var host = CreateHostBuilder(args).Build();
             var services = host.Services;
 
+            {
+                await using var db = services.GetRequiredService<VoteDbContext>();
+                await db.Database.EnsureCreatedAsync();
+                await db.Database.MigrateAsync();
+            }
+
             var client = services.GetRequiredService<DiscordGatewayClient>();
             var cancellationSource = new CancellationTokenSource();
             await client.RunAsync(cancellationSource.Token);
