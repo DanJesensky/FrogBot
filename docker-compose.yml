@@ -1,17 +1,15 @@
 version: '3.9'
 
 services:
-  mariadb:
-    image: 'mariadb:latest'
+  postgres:
+    image: 'postgres:latest'
     ports:
-      - '33060:3306'
+      - '15432:5432'
     environment:
-      MARIADB_ROOT_PASSWORD: 'password'
-      MARIADB_ROOT_HOST: '%'
-      MARIADB_DATABASE: 'frogbot'
+      POSTGRES_PASSWORD: 'password'
     volumes:
-      - 'mariadb_data:/data/db'
+      - 'postgres_data:/data/db'
 
 volumes:
-  mariadb_data:
+  postgres_data:
     name: 'frogbot_mariadb'

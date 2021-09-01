@@ -25,7 +25,7 @@ namespace FrogBot.ChatCommands
         }
 
         public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-            messageCreateEvent.Content.StartsWith("!top");
+            messageCreateEvent.Content.Equals("!top");
 
         public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
         {

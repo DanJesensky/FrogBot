@@ -48,7 +48,7 @@ namespace FrogBot {
                 logging.AddConsole().SetMinimumLevel(LogLevel.Trace));
 
             services.AddDbContext<VoteDbContext>(opt =>
-                opt.UseMySql(hostContext.Configuration[ConfigurationKeys.ConnectionString], MariaDbServerVersion.LatestSupportedServerVersion));
+                opt.UseNpgsql(hostContext.Configuration[ConfigurationKeys.ConnectionString]));
 
             services.AddTransient<IVoteManager, VoteManager>();
             services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();

@@ -13,9 +13,9 @@ namespace FrogBot.ChatCommands
         {
             _channelApi = channelApi;
         }
-        
+
         public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-            messageCreateEvent.Content.StartsWith("!test");
+            messageCreateEvent.Content.Equals("!test");
 
         public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
         {
