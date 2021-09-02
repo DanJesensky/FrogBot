@@ -4,7 +4,6 @@
     "FrogBot": {
       "commandName": "Project",
       "environmentVariables": {
-        "ConnectionString": "server=localhost;uid=root;pwd=password;database=frogbot;port=33060"
       }
     }
   }
