@@ -35,13 +35,10 @@ namespace FrogBot.Responders
                 return Result.FromSuccess();
             }
 
-            var tasks = new[]
-            {
-                _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬆", ct),
-                _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬇", ct)
-            };
+            // Not invoking these simultaneously because they may be out of order, which can be confusing
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬆", ct);
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬇", ct);
 
-            await Task.WhenAll(tasks);
             return Result.FromSuccess();
         }
 
