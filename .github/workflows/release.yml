@@ -27,12 +27,12 @@ jobs:
         dotnet-version: '5.0.x'
 
     # Setup Node.js for GitVersion
-    - name: Setup Node
+    - name: Setup node
       uses: actions/setup-node@v2
       with:
         node-version: '12'
 
-    - name: Install GitVersion
+    - name: Install gitversion
       uses: gittools/actions/gitversion/setup@v0.9.10
       with:
         versionSpec: '5.x'
@@ -43,20 +43,18 @@ jobs:
     - name: Build
       run: dotnet build --no-restore -o .artifacts/ -c release
 
-    - name: Tests
+    - name: Test
       run: dotnet test --no-build
 
-    - name: Build Images
+    - name: Build docker image
       env:
-        BUILD_URL: https://github.com/${{ env.GITHUB_REPOSITORY }}/actions/runs/${{ env.GITHUB_RUN_ID }}
         VERSION: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
       run: |
         BUILD_DATE=$(date -u "+%Y-%m-%dT%H:%M:%S")
-        docker build . --build-arg BUILD_DATE=$BUILD_DATE \
-          --build-arg COMMIT_SHA=${{ env.GITHUB_SHA }} --build-arg BUILD_URL=$BUILD_URL \
+        docker build . \
           -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest"
 
-    - name: Login to GitHub Container Registry
+    - name: Log into GitHub container registry
       uses: docker/login-action@v1
       with:
         registry: ${{ env.CONTAINER_REPO }}
@@ -72,5 +70,5 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
-        password: $ {{ secrets.SSH_PASSWORD }}
+        key: ${{ secrets.SSH_KEY }}
         script: systemctl --user restart frogbot.service
