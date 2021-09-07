@@ -70,6 +70,7 @@ jobs:
       uses: appleboy/ssh-action@v0.1.4
       with:
         host: ${{ secrets.SSH_HOST }}
+        port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         password: $ {{ secrets.SSH_PASSWORD }}
         script: systemctl --user restart frogbot.service
