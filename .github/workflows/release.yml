@@ -40,20 +40,6 @@ jobs:
       with:
         versionSpec: '5.x'
 
-    - name: Generate Version
-      id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.10
-      with:
-        useConfigFile: true
-        configFilePath: ./GitVersion.yml
-        updateAssemblyInfo: true
-        updateAssemblyInfoFilename: SolutionAssemblyInfo.cs
-      env:
-        IGNORE_NORMALISATION_GIT_HEAD_MOVE: '1'
-
-    - name: Setup dotnet tools
-      run: dotnet tool restore
-
     - name: Restore packages
       run: dotnet restore
 
