@@ -64,7 +64,7 @@ jobs:
 # Production Deployment #
 #########################
   deploy-prod:
-    name: Deploy Production Environment
+    name: Deploy to Production
     environment: prod
     env:
       CONTAINER_REPO: ghcr.io
@@ -86,9 +86,7 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push to Container Repository
-      env:
-        VERSION: ${{ steps.gitversion.outputs.nuGetVersionV2 }}
-      run: docker push ${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest
+      run: docker push ghcr.io/danjesensky/frogbot:latest
 
     - name: Restart Service via SSH
       uses: appleboy/ssh-action@v0.1.4
