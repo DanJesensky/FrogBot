@@ -28,6 +28,13 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Compile Include="..\SolutionAssemblyInfo.cs">
+            <Link>Properties\SolutionAssemblyInfo.cs</Link>
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
       <None Update="Properties\launchSettings.json">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
