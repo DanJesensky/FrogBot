@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
@@ -36,8 +37,8 @@ namespace FrogBot.Responders
             }
 
             // Not invoking these simultaneously because they may be out of order, which can be confusing
-            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬆", ct);
-            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, "⬇", ct);
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, $"dan:{VoteEmojiProvider.UpvoteEmojiId}", ct);
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, $"jim:{VoteEmojiProvider.DownvoteEmojiId}", ct);
 
             return Result.FromSuccess();
         }

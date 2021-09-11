@@ -4,8 +4,8 @@ namespace FrogBot.Voting
 {
     public class VoteEmojiProvider : IVoteEmojiProvider
     {
-        private const ulong UpvoteEmojiId = 425499646752981003L;
-        private const ulong DownvoteEmojiId = 425500620212928547L;
+        internal const ulong UpvoteEmojiId = 425499646752981003L;
+        internal const ulong DownvoteEmojiId = 425500620212928547L;
 
         public IEmoji GetEmoji(VoteType type)
         {
