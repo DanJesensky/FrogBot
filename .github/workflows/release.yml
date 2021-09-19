@@ -2,10 +2,9 @@ name: Release
 
 on:
   push:
-    tags: []
-    branches:
-    - test-actions
-
+    tags:
+      - v*
+    
 jobs:
   Deploy:
     name: Deploy
@@ -30,7 +29,7 @@ jobs:
         
     - name: Set version
       id: set_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
 
     - name: Restore packages
       run: dotnet restore
