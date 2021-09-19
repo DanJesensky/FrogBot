@@ -1,10 +1,12 @@
 using System.Threading.Tasks;
+using FrogBot.ChatCommands.Authorization;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
 namespace FrogBot.ChatCommands
 {
+    [BotAdminAuthorization]
     public class TestChatCommand : IChatCommand
     {
         private readonly IDiscordRestChannelAPI _channelApi;

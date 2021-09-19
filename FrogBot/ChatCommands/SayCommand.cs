@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using FrogBot.ChatCommands;
+using FrogBot.ChatCommands.Authorization;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
@@ -8,6 +8,7 @@ using Remora.Results;
 
 namespace FrogBot.ChatCommands
 {
+    [BotAdminAuthorization]
     public class SayCommand : IChatCommand
     {
         private readonly IDiscordRestChannelAPI _channelApi;
@@ -18,8 +19,7 @@ namespace FrogBot.ChatCommands
         }
         
         public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-            messageCreateEvent.Author.ID.Value == 159870805390524416L 
-            && messageCreateEvent.Content.StartsWith("!say");
+            messageCreateEvent.Content.StartsWith("!say");
 
         public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
         {

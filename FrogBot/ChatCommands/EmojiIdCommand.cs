@@ -2,17 +2,20 @@ using System;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using FrogBot.ChatCommands.Authorization;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
 namespace FrogBot.ChatCommands
 {
+    [BotAdminAuthorization]
     public class EmojiIdCommand : IChatCommand
     {
-        private static readonly Regex _emojiRegex = new Regex("(?<fullEmoji><:(?:[^:]+):(?<id>\\d+)>)", RegexOptions.Compiled);
+        private static readonly Regex _emojiRegex = new("(?<fullEmoji><:(?:[^:]+):(?<id>\\d+)>)", RegexOptions.Compiled);
+
         private readonly IDiscordRestChannelAPI _channelApi;
-        
+
         public EmojiIdCommand(IDiscordRestChannelAPI channelApi)
         {
             _channelApi = channelApi;
