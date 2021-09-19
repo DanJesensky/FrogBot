@@ -64,4 +64,4 @@ jobs:
         port: ${{ secrets.SSH_PORT }}
         username: ${{ secrets.SSH_USERNAME }}
         password: ${{ secrets.SSH_PASSWORD }}
-        script: ~/upgrade-db.sh && systemctl --user restart frogbot.service
+        script: ~/upgrade-db.sh > /dev/null && systemctl --user restart frogbot.service > /dev/null
