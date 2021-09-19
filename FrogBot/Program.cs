@@ -44,8 +44,7 @@ namespace FrogBot {
 
         private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
         {
-            services.AddLogging(logging =>
-                logging.AddConsole().SetMinimumLevel(LogLevel.Trace));
+            services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogLevel.Information));
 
             services.AddDbContext<VoteDbContext>(opt =>
                 opt.UseNpgsql(hostContext.Configuration[ConfigurationKeys.ConnectionString]));
