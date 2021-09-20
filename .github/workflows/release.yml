@@ -1,0 +1,67 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+    
+jobs:
+  Deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_REPO: ghcr.io
+      IMAGE_NAME: danjesensky/frogbot
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup dotnet
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+
+    - name: Install gitversion
+      uses: gittools/actions/gitversion/setup@v0.9.10
+      with:
+        versionSpec: '5.x'
+        
+    - name: Set version
+      id: set_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+
+    - name: Restore packages
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore -o .artifacts/ -c release
+
+    - name: Test
+      run: dotnet test --no-build
+
+    - name: Build docker image
+      run: |
+        BUILD_DATE=$(date -u "+%Y-%m-%dT%H:%M:%S")
+        docker build . \
+          -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest" \
+          -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.set_version.outputs.VERSION }}"
+
+    - name: Log into GitHub container registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.CONTAINER_REPO }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.CR_ACCESS_TOKEN }}
+
+    - name: Push to Container Repository
+      run: docker push ghcr.io/danjesensky/frogbot:latest
+
+    - name: Restart Service via SSH
+      uses: appleboy/ssh-action@v0.1.4
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        port: ${{ secrets.SSH_PORT }}
+        username: ${{ secrets.SSH_USERNAME }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: ~/upgrade-db.sh > /dev/null && systemctl --user restart frogbot.service > /dev/null
