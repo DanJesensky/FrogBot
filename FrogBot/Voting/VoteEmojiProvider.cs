@@ -1,15 +1,24 @@
+using System.Runtime.CompilerServices;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace FrogBot.Voting
 {
     public class VoteEmojiProvider : IVoteEmojiProvider
     {
-        internal const ulong UpvoteEmojiId = 425499646752981003L;
-        internal const ulong DownvoteEmojiId = 425500620212928547L;
+        internal const string UpvoteEmoji = "dan:425499646752981003";
+        internal const string DownvoteEmoji = "jim:425499646752981003";
+        private const ulong UpvoteEmojiId = 425499646752981003L;
+        private const ulong DownvoteEmojiId = 425500620212928547L;
 
-        public IEmoji GetEmoji(VoteType type)
+        [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+        public string? GetEmoji(VoteType type)
         {
-            throw new System.NotImplementedException();
+            return type switch
+            {
+                VoteType.Upvote => UpvoteEmoji,
+                VoteType.Downvote => DownvoteEmoji,
+                _ => null
+            };
         }
 
         public VoteType? GetVoteTypeFromEmoji(IPartialEmoji emoji)
