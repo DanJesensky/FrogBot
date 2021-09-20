@@ -1,0 +1,49 @@
+name: CI Build
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  build:
+    name: CI Build
+    runs-on: ubuntu-latest
+    env:
+      CONTAINER_REPO: ghcr.io
+      IMAGE_NAME: danjesensky/frogbot
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+
+      - name: Install gitversion
+        uses: gittools/actions/gitversion/setup@v0.9.10
+        with:
+          versionSpec: '5.x'
+
+      - name: Invoke gitversion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v0.9.10
+
+      - name: Restore packages
+        run: dotnet restore
+
+      - name: Build
+        run: 'dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}'
+
+      - name: Test
+        run: dotnet test --no-build
+
+      - name: Build docker image
+        run: |
+          BUILD_DATE=$(date -u "+%Y-%m-%dT%H:%M:%S")
+          docker build . \
+            -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest" \
+            -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}"

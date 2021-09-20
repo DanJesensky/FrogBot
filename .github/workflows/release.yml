@@ -6,8 +6,9 @@ on:
       - v*
     
 jobs:
-  Deploy:
+  deploy-prod:
     name: Deploy
+    environment: prod
     runs-on: ubuntu-latest
     env:
       CONTAINER_REPO: ghcr.io
@@ -16,6 +17,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: Setup dotnet
       uses: actions/setup-dotnet@v1
@@ -27,15 +30,15 @@ jobs:
       with:
         versionSpec: '5.x'
         
-    - name: Set version
-      id: set_version
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+    - name: Invoke gitversion
+      id: gitversion
+      uses: gittools/actions/gitversion/execute@v0.9.10
 
     - name: Restore packages
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --no-restore -o .artifacts/ -c release
+      run: 'dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}' 
 
     - name: Test
       run: dotnet test --no-build
@@ -45,7 +48,7 @@ jobs:
         BUILD_DATE=$(date -u "+%Y-%m-%dT%H:%M:%S")
         docker build . \
           -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest" \
-          -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.set_version.outputs.VERSION }}"
+          -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}"
 
     - name: Log into GitHub container registry
       uses: docker/login-action@v1
@@ -57,7 +60,7 @@ jobs:
     - name: Push to Container Repository
       run: |
         docker push "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest"
-        docker push "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.set_version.outputs.VERSION }}"
+        docker push "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}"
 
     - name: Restart Service via SSH
       uses: appleboy/ssh-action@v0.1.4
