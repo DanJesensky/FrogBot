@@ -67,6 +67,7 @@ namespace FrogBot {
                 .AddResponder<DeleteMessageResponder>()
                 .AddChatCommand<TestChatCommand>()
                 .AddChatCommand<SayCommand>()
+                .AddChatCommand<VersionCommand>()
                 .AddChatCommand<TopChatCommand>()
                 .AddChatCommand<PointsChatCommand>();
         }
