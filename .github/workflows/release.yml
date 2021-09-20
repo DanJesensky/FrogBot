@@ -6,8 +6,9 @@ on:
       - v*
     
 jobs:
-  Deploy:
+  deploy-prod:
     name: Deploy
+    environment: prod
     runs-on: ubuntu-latest
     env:
       CONTAINER_REPO: ghcr.io
