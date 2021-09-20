@@ -37,8 +37,8 @@ namespace FrogBot.Responders
             }
 
             // Not invoking these simultaneously because they may be out of order, which can be confusing
-            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, $"dan:{VoteEmojiProvider.UpvoteEmojiId}", ct);
-            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, $"jim:{VoteEmojiProvider.DownvoteEmojiId}", ct);
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, VoteEmojiProvider.UpvoteEmoji, ct);
+            await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, VoteEmojiProvider.DownvoteEmoji, ct);
 
             return Result.FromSuccess();
         }
@@ -48,7 +48,8 @@ namespace FrogBot.Responders
             var content = message.Content;
             return message.Attachments.Any()
                 || _linkRegex.IsMatch(content)
-                || content.Contains("!v");
+                || (content.Contains("!v ")
+                    && !content.Equals("!version"));
         }
     }
 }
