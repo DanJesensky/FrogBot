@@ -55,7 +55,9 @@ jobs:
         password: ${{ secrets.CR_ACCESS_TOKEN }}
 
     - name: Push to Container Repository
-      run: docker push ghcr.io/danjesensky/frogbot:latest
+      run: |
+        docker push "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest"
+        docker push "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.set_version.outputs.VERSION }}"
 
     - name: Restart Service via SSH
       uses: appleboy/ssh-action@v0.1.4
