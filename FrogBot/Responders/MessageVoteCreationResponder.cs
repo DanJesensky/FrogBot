@@ -48,7 +48,7 @@ namespace FrogBot.Responders
             var content = message.Content;
             return message.Attachments.Any()
                 || _linkRegex.IsMatch(content)
-                || (content.Contains("!v ")
+                || (content.Contains("!v")
                     && !content.Equals("!version"));
         }
     }

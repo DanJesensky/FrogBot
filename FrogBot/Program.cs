@@ -69,7 +69,8 @@ namespace FrogBot {
                 .AddChatCommand<SayCommand>()
                 .AddChatCommand<VersionCommand>()
                 .AddChatCommand<TopChatCommand>()
-                .AddChatCommand<PointsChatCommand>();
+                .AddChatCommand<PointsChatCommand>()
+                .AddChatCommand<EmojiIdCommand>();
         }
     }
 }
