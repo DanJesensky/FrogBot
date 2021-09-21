@@ -19,7 +19,7 @@ namespace FrogBot.ChatCommands
 
         public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
         {
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, typeof(Program).Assembly.GetName().Version?.ToString() ?? "dunno");
+            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "dunno");
             return Result.FromSuccess();
         }
     }
