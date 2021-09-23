@@ -43,7 +43,6 @@ jobs:
 
       - name: Build docker image
         run: |
-          BUILD_DATE=$(date -u "+%Y-%m-%dT%H:%M:%S")
           docker build . \
             -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:latest" \
             -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}"
