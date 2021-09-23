@@ -6,7 +6,7 @@ namespace FrogBot.Voting
     public class VoteEmojiProvider : IVoteEmojiProvider
     {
         internal const string UpvoteEmoji = "dan:425499646752981003";
-        internal const string DownvoteEmoji = "jim:425499646752981003";
+        internal const string DownvoteEmoji = "jim:425500620212928547";
         private const ulong UpvoteEmojiId = 425499646752981003L;
         private const ulong DownvoteEmojiId = 425500620212928547L;
 
