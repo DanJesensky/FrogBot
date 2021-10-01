@@ -10,6 +10,7 @@ namespace FrogBot.Responders
 {
     public class VoteAddResponder : IResponder<IMessageReactionAdd>
     {
+        private const ulong ServerId = 211526836948041729L;
         private readonly IVoteManager _voteManager;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IVoteEmojiProvider _voteEmojiProvider;
@@ -59,7 +60,7 @@ namespace FrogBot.Responders
             }
 
             // Locked to this server for now
-            if (!gatewayEvent.GuildID.HasValue || gatewayEvent.GuildID.Value.Value != 211526836948041729L)
+            if (!gatewayEvent.GuildID.HasValue || gatewayEvent.GuildID.Value.Value != ServerId)
             {
                 return Result.FromSuccess();
             }

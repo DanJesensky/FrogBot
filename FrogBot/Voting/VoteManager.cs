@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -89,6 +90,22 @@ namespace FrogBot.Voting
             {
                 _logger.LogError(ex, "Failed to delete votes for message {message} in {channel}", message, channel);
             }
+        }
+
+        public async Task<IEnumerable<Vote>> GetVotesAsync(ulong channel, ulong message) =>
+            await _dbContext.Votes
+                .AsNoTracking()
+                .Where(vote => vote.ChannelId == channel && vote.MessageId == message)
+                .ToArrayAsync();
+
+        public async Task RemoveVotesAsync(ulong channel, ulong message, VoteType type)
+        {
+            var votesToRemove = _dbContext.Votes
+                .AsNoTracking()
+                .Where(vote => vote.ChannelId == channel && vote.MessageId == message && vote.VoteType == type);
+            
+            _dbContext.Votes.RemoveRange(votesToRemove);
+            await _dbContext.SaveChangesAsync();
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace FrogBot.Voting
@@ -9,5 +11,9 @@ namespace FrogBot.Voting
         Task RemoveVoteAsync(ulong channel, ulong message, ulong author, ulong voter, VoteType type);
 
         Task RemoveAllVotesAsync(ulong channel, ulong message);
+
+        Task<IEnumerable<Vote>> GetVotesAsync(ulong channel, ulong message);
+
+        Task RemoveVotesAsync(ulong channel, ulong message, VoteType type);
     }
 }

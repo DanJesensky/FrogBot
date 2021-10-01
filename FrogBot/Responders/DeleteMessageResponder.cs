@@ -18,7 +18,7 @@ namespace FrogBot.Responders
 
         public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = default)
         {
-            await _voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value);
+            await _voteManager.RemoveVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, VoteType.Upvote);
             return Result.FromSuccess();
         }
     }
