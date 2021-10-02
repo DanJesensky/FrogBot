@@ -17,5 +17,7 @@ namespace FrogBot.Voting
         }
 
         public DbSet<Vote> Votes { get; set; }
+        
+        public DbSet<CachedUsername> CachedUsernames { get; set; }
     }
 }

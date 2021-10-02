@@ -51,13 +51,18 @@ namespace FrogBot {
 
             services.AddTransient<IVoteManager, VoteManager>();
             services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();
+            services.AddTransient<IUsernameCachingService, UsernameCachingService>();
 
             services.AddDiscordGateway(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
                 .AddDiscordRest(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
                 .AddDiscordApi()
                 .Configure<DiscordGatewayClientOptions>(opt =>
                 {
-                    opt.Intents = GatewayIntents.Guilds | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | GatewayIntents.DirectMessages | GatewayIntents.GuildMessageTyping;
+                    opt.Intents =
+                        GatewayIntents.Guilds |
+                        GatewayIntents.GuildMessages |
+                        GatewayIntents.GuildMessageReactions |
+                        GatewayIntents.DirectMessages;
                 })
                 .AddResponder<ChatCommandResponder>()
                 .AddResponder<MessageVoteCreationResponder>()
@@ -65,6 +70,7 @@ namespace FrogBot {
                 .AddResponder<VoteRemoveResponder>()
                 .AddResponder<RemoveAllVotesResponder>()
                 .AddResponder<DeleteMessageResponder>()
+                .AddResponder<UsernameChangeResponder>()
                 .AddChatCommand<TestChatCommand>()
                 .AddChatCommand<SayCommand>()
                 .AddChatCommand<VersionCommand>()

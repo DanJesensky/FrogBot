@@ -37,9 +37,9 @@ namespace FrogBot.Responders
             }
 
             var authzAttribute = matchingCommand.GetType().GetCustomAttribute<ChatCommandAuthorizationAttribute>();
-            if (authzAttribute?.IsAuthorized(messageCreateEvent.Author, messageCreateEvent.ReferencedMessage.Value) == false)
+            if (authzAttribute?.IsAuthorized(messageCreateEvent.Author, messageCreateEvent.ReferencedMessage.Value!) == false)
             {
-                await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, "Sorry, you're not allowed to do that.");
+                await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, "Sorry, you're not allowed to do that.", ct: ct);
                 return Result.FromSuccess();
             }
 
