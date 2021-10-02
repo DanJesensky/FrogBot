@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - v*
-    
+
 jobs:
   deploy-prod:
     name: Deploy
@@ -29,7 +29,7 @@ jobs:
       uses: gittools/actions/gitversion/setup@v0.9.10
       with:
         versionSpec: '5.x'
-        
+
     - name: Invoke gitversion
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.10
@@ -38,7 +38,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: 'dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}' 
+      run: 'dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}'
 
     - name: Test
       run: dotnet test --no-build

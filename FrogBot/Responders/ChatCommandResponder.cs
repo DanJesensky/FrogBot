@@ -22,7 +22,7 @@ namespace FrogBot.Responders
             _chatCommands = commands;
             _channelApi = channelApi;
         }
-        
+
         public async Task<Result> RespondAsync(IMessageCreate messageCreateEvent, CancellationToken ct = default)
         {
             if (!messageCreateEvent.Content.StartsWith("!"))

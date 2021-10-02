@@ -19,7 +19,7 @@ namespace FrogBot.ChatCommands
             _dbContext = dbContext;
             _channelApi = channelApi;
         }
-        
+
         public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
             messageCreateEvent.Content.StartsWith("!points");
 
@@ -32,7 +32,7 @@ namespace FrogBot.ChatCommands
                 {
                     return Result.FromError(new InvalidOperationError("Only up to five users may be specified at once."));
                 }
-                
+
                 targets = messageCreateEvent.Mentions.Select(user => user.ID.Value);
             }
             else

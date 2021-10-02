@@ -28,7 +28,7 @@ namespace FrogBot.Responders
             {
                 return Result.FromSuccess();
             }
-            
+
             var message = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
             if (!message.IsSuccess)
             {

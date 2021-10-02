@@ -103,7 +103,7 @@ namespace FrogBot.Voting
             var votesToRemove = _dbContext.Votes
                 .AsNoTracking()
                 .Where(vote => vote.ChannelId == channel && vote.MessageId == message && vote.VoteType == type);
-            
+
             _dbContext.Votes.RemoveRange(votesToRemove);
             await _dbContext.SaveChangesAsync();
         }

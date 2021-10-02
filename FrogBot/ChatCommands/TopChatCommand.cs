@@ -47,7 +47,7 @@ namespace FrogBot.ChatCommands
                 }
                 else
                 {
-                    sb.Append(index++).Append(". <@").Append(top.Id).Append(">: ").Append(top.Total).Append(" points").AppendLine();   
+                    sb.Append(index++).Append(". <@").Append(top.Id).Append(">: ").Append(top.Total).Append(" points").AppendLine();
                 }
             }
 
@@ -57,7 +57,7 @@ namespace FrogBot.ChatCommands
             }
             else
             {
-                await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());   
+                await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
             }
             return Result.FromSuccess();
         }

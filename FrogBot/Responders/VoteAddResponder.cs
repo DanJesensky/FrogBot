@@ -25,19 +25,19 @@ namespace FrogBot.Responders
         public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent, CancellationToken ct = default)
         {
             var user = gatewayEvent.Member.Value.User.Value;
-            
+
             // Bots can't vote.
             if (user.IsBot.HasValue && user.IsBot.Value)
             {
                 return Result.FromSuccess();
             }
-            
+
             var voteType = _voteEmojiProvider.GetVoteTypeFromEmoji(gatewayEvent.Emoji);
             if (voteType is null)
             {
                 return Result.FromSuccess();
             }
-            
+
             // Fetch message details from Discord
             var messageResult = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
             if (!messageResult.IsSuccess)

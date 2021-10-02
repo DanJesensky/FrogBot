@@ -17,7 +17,7 @@ namespace FrogBot.ChatCommands
         {
             _channelApi = channelApi;
         }
-        
+
         public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
             messageCreateEvent.Content.StartsWith("!say");
 
