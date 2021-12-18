@@ -21,7 +21,7 @@ public class TestChatCommand : IChatCommand
 
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        await _channelApi.CreateReactionAsync(message.ChannelID, message.ID, "👍");
+        await _channelApi.CreateReactionAsync(message.ChannelID, message.ID, "✅");
         return Result.FromSuccess();
     }
 }

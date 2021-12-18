@@ -19,6 +19,11 @@ public class VoteManager : IVoteManager
 
     public async Task AddVoteAsync(ulong channel, ulong message, ulong author, ulong voter, VoteType type)
     {
+        if (await _dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter))
+        {
+            return;
+        }
+
         try
         {
             _ = await _dbContext.Votes.AddAsync(new Vote
@@ -95,13 +100,18 @@ public class VoteManager : IVoteManager
     public async Task<IEnumerable<Vote>> GetMessageVotesAsync(ulong channel, ulong message) =>
         await _dbContext.Votes
             .AsNoTracking()
-            .Where(vote => vote.ChannelId == channel && vote.MessageId == message)
+            .Where(vote =>
+                vote.ChannelId == channel
+                && vote.MessageId == message
+                && !_dbContext.BannedVoters.AsNoTracking().Any(u => u.UserId == vote.VoterId))
             .ToArrayAsync();
 
     public async Task<long> GetScoreAsync(ulong userId) =>
         await _dbContext.Votes
             .AsNoTracking()
-            .Where(v => v.ReceiverId == userId)
+            .Where(v =>
+                v.ReceiverId == userId 
+                && !_dbContext.BannedVoters.AsNoTracking().Any(user => user.UserId == v.VoterId))
             .SumAsync(v => (int)v.VoteType);
 
     public async Task RemoveVotesAsync(ulong channel, ulong message, VoteType type)
