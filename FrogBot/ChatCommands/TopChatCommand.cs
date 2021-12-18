@@ -3,7 +3,6 @@ using System.Text;
 using System.Threading.Tasks;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
