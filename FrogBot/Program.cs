@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.ChatCommands;
 using FrogBot.Responders;
+using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -56,6 +57,8 @@ public static class Program
         services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
 
+        services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
+
         services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .AddDiscordRest(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .Configure<DiscordGatewayClientOptions>(opt =>
@@ -66,7 +69,7 @@ public static class Program
                     GatewayIntents.GuildMessageReactions |
                     GatewayIntents.DirectMessages;
             })
-            .AddResponder<ChatCommandResponder>()
+            .AddResponder<DelegatingChatResponder>()
             .AddResponder<MessageVoteCreationResponder>()
             .AddResponder<VoteAddResponder>()
             .AddResponder<VoteRemoveResponder>()
@@ -78,6 +81,8 @@ public static class Program
             .AddChatCommand<VersionCommand>()
             .AddChatCommand<TopChatCommand>()
             .AddChatCommand<PointsChatCommand>()
-            .AddChatCommand<EmojiIdCommand>();
+            .AddChatCommand<EmojiIdCommand>()
+            .AddChatResponder<ChatCommandResponder>()
+            .AddChatResponder<TikTokChatResponder>();
     }
 }

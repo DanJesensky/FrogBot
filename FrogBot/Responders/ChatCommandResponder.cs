@@ -6,13 +6,13 @@ using FrogBot.ChatCommands;
 using FrogBot.ChatCommands.Authorization;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
 namespace FrogBot.Responders;
 
-public class ChatCommandResponder : IResponder<IMessageCreate>
+public class ChatCommandResponder : IChatResponder
 {
     private readonly IEnumerable<IChatCommand> _chatCommands;
     private readonly IDiscordRestChannelAPI _channelApi;
@@ -23,7 +23,7 @@ public class ChatCommandResponder : IResponder<IMessageCreate>
         _channelApi = channelApi;
     }
 
-    public async Task<Result> RespondAsync(IMessageCreate messageCreateEvent, CancellationToken ct = default)
+    public async Task<Result> RespondAsync(IMessage message, IMessageCreate messageCreateEvent, CancellationToken ct = default)
     {
         if (!messageCreateEvent.Content.StartsWith("!"))
         {
