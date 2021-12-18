@@ -1,8 +1,7 @@
-namespace FrogBot.Voting
+namespace FrogBot.Voting;
+
+public enum VoteType
 {
-    public enum VoteType
-    {
-        Upvote = 1,
-        Downvote = -1
-    }
+    Upvote = 1,
+    Downvote = -1
 }

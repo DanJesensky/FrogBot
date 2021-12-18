@@ -4,13 +4,12 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
-namespace FrogBot.Responders
+namespace FrogBot.Responders;
+
+public class RemoveAllVotesResponder : IResponder<IMessageReactionRemoveAll>
 {
-    public class RemoveAllVotesResponder : IResponder<IMessageReactionRemoveAll>
+    public Task<Result> RespondAsync(IMessageReactionRemoveAll gatewayEvent, CancellationToken ct = new CancellationToken())
     {
-        public Task<Result> RespondAsync(IMessageReactionRemoveAll gatewayEvent, CancellationToken ct = new CancellationToken())
-        {
-            throw new System.NotImplementedException();
-        }
+        throw new System.NotImplementedException();
     }
 }

@@ -7,36 +7,35 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
-namespace FrogBot.ChatCommands
+namespace FrogBot.ChatCommands;
+
+[BotAdminAuthorization]
+public class EmojiIdCommand : IChatCommand
 {
-    [BotAdminAuthorization]
-    public class EmojiIdCommand : IChatCommand
+    private static readonly Regex _emojiRegex = new("(?<fullEmoji><:(?:[^:]+):(?<id>\\d+)>)", RegexOptions.Compiled);
+
+    private readonly IDiscordRestChannelAPI _channelApi;
+
+    public EmojiIdCommand(IDiscordRestChannelAPI channelApi)
     {
-        private static readonly Regex _emojiRegex = new("(?<fullEmoji><:(?:[^:]+):(?<id>\\d+)>)", RegexOptions.Compiled);
+        _channelApi = channelApi;
+    }
 
-        private readonly IDiscordRestChannelAPI _channelApi;
+    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
+        messageCreateEvent.Content.StartsWith("!emojiId", StringComparison.OrdinalIgnoreCase);
 
-        public EmojiIdCommand(IDiscordRestChannelAPI channelApi)
+    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    {
+        var matches = _emojiRegex.Matches(messageCreateEvent.Content);
+
+        StringBuilder sb = new();
+        foreach (Match match in matches)
         {
-            _channelApi = channelApi;
+            sb.Append(match.Groups["fullEmoji"]).Append(' ').Append(match.Groups["id"]);
         }
 
-        public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-            messageCreateEvent.Content.StartsWith("!emojiId", StringComparison.OrdinalIgnoreCase);
+        await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
 
-        public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
-        {
-            var matches = _emojiRegex.Matches(messageCreateEvent.Content);
-
-            StringBuilder sb = new();
-            foreach (Match match in matches)
-            {
-                sb.Append(match.Groups["fullEmoji"]).Append(' ').Append(match.Groups["id"]);
-            }
-
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
-
-            return Result.FromSuccess();
-        }
+        return Result.FromSuccess();
     }
 }

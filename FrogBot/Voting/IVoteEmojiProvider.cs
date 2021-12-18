@@ -1,11 +1,10 @@
 using Remora.Discord.API.Abstractions.Objects;
 
-namespace FrogBot.Voting
-{
-    public interface IVoteEmojiProvider
-    {
-        string? GetEmoji(VoteType type);
+namespace FrogBot.Voting;
 
-        VoteType? GetVoteTypeFromEmoji(IPartialEmoji emoji);
-    }
+public interface IVoteEmojiProvider
+{
+    string? GetEmoji(VoteType type);
+
+    VoteType? GetVoteTypeFromEmoji(IPartialEmoji emoji);
 }
