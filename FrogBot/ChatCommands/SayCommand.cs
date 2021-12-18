@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using FrogBot.ChatCommands.Authorization;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.Core;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace FrogBot.ChatCommands

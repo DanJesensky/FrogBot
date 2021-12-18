@@ -55,7 +55,6 @@ namespace FrogBot {
 
             services.AddDiscordGateway(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
                 .AddDiscordRest(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
-                .AddDiscordApi()
                 .Configure<DiscordGatewayClientOptions>(opt =>
                 {
                     opt.Intents =
