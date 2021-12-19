@@ -43,6 +43,7 @@ public class MessageVoteCreationResponder : IResponder<IMessageCreate>
         await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotUpvoteEmoji, ct);
         await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotDownvoteEmoji, ct);
 
+        _logger.LogDebug("Added bot reactions to message {messageId}", gatewayEvent.ID);
         return Result.FromSuccess();
     }
 
