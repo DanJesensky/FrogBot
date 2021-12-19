@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
@@ -37,14 +38,16 @@ public static class Program
 
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder()
-            .ConfigureAppConfiguration(configure => configure
-                .AddCommandLine(args)
-                .AddEnvironmentVariables())
+            .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
+            .ConfigureAppConfiguration(builder => builder.AddCommandLine(args))
             .ConfigureServices(ConfigureServices);
 
     private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
     {
-        services.AddLogging(logging => logging.AddConsole().SetMinimumLevel(LogLevel.Information));
+        services.AddLogging(logging => logging.AddConsole().AddConfiguration(hostContext.Configuration.GetSection("Logging")));
+
+        services.Configure<FrogBotOptions>(hostContext.Configuration.GetSection(ConfigurationKeys.FrogBot));
+        services.Configure<VoteOptions>(hostContext.Configuration.GetSection(ConfigurationKeys.Voting));
 
         services.AddDbContext<VoteDbContext>(opt =>
             opt.UseNpgsql(hostContext.Configuration[ConfigurationKeys.ConnectionString]));
@@ -53,8 +56,8 @@ public static class Program
         services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
 
-        services.AddDiscordGateway(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
-            .AddDiscordRest(sp => sp.GetRequiredService<IConfiguration>()[ConfigurationKeys.Token])
+        services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
+            .AddDiscordRest(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .Configure<DiscordGatewayClientOptions>(opt =>
             {
                 opt.Intents =

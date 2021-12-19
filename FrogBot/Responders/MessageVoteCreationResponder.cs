@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -16,11 +17,13 @@ public class MessageVoteCreationResponder : IResponder<IMessageCreate>
 {
     private static readonly Regex _linkRegex = new("https??://", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
     private readonly ILogger<MessageVoteCreationResponder> _logger;
+    private readonly IOptions<VoteOptions> _voteOptions;
     private readonly IDiscordRestChannelAPI _messageApi;
 
-    public MessageVoteCreationResponder(ILogger<MessageVoteCreationResponder> logger, IDiscordRestChannelAPI messageApi)
+    public MessageVoteCreationResponder(ILogger<MessageVoteCreationResponder> logger, IOptions<VoteOptions> voteOptions, IDiscordRestChannelAPI messageApi)
     {
         _logger = logger;
+        _voteOptions = voteOptions;
         _messageApi = messageApi;
     }
 
@@ -37,8 +40,8 @@ public class MessageVoteCreationResponder : IResponder<IMessageCreate>
         }
 
         // Not invoking these simultaneously because they may be out of order, which can be confusing
-        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, VoteEmojiProvider.UpvoteEmoji, ct);
-        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, VoteEmojiProvider.DownvoteEmoji, ct);
+        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotUpvoteEmoji, ct);
+        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotDownvoteEmoji, ct);
 
         return Result.FromSuccess();
     }

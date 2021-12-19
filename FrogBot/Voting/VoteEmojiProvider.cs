@@ -1,46 +1,59 @@
+using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 
 namespace FrogBot.Voting;
 
 public class VoteEmojiProvider : IVoteEmojiProvider
 {
-    internal const string UpvoteEmoji = "dan:425499646752981003";
-    internal const string DownvoteEmoji = "jim:425500620212928547";
-    private const ulong UpvoteEmojiId = 425499646752981003L;
-    private const ulong DownvoteEmojiId = 425500620212928547L;
+    private readonly IOptions<VoteOptions> _voteOptions;
+
+    public VoteEmojiProvider(IOptions<VoteOptions> voteOptions)
+    {
+        _voteOptions = voteOptions;
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public string? GetEmoji(VoteType type)
     {
         return type switch
         {
-            VoteType.Upvote => UpvoteEmoji,
-            VoteType.Downvote => DownvoteEmoji,
+            VoteType.Upvote => _voteOptions.Value.BotUpvoteEmoji,
+            VoteType.Downvote => _voteOptions.Value.BotDownvoteEmoji,
             _ => null
         };
     }
 
     public VoteType? GetVoteTypeFromEmoji(IPartialEmoji emoji)
     {
+        var options = _voteOptions.Value;
+        string? emojiId;
+
         // why is this even possible?
         if (emoji.ID.HasValue && emoji.ID.Value != null)
         {
-            return emoji.ID.Value!.Value.Value switch
-            {
-                UpvoteEmojiId => VoteType.Upvote,
-                DownvoteEmojiId => VoteType.Downvote,
-                _ => null
-            };
+            emojiId = emoji.ID.Value!.Value.Value.ToString();
+        }
+        else if (emoji.Name.HasValue)
+        {
+            emojiId = emoji.Name.Value;
+        }
+        else
+        {
+            return null;
         }
 
-        return emoji.Name.HasValue
-            ? emoji.Name.Value switch
-            {
-                "⬆" => VoteType.Upvote,
-                "⬇" => VoteType.Downvote,
-                _ => null
-            }
-            : null;
+        if (options.UpvoteEmojis.Contains(emojiId))
+        {
+            return VoteType.Upvote;
+        }
+
+        if (options.DownvoteEmojis.Contains(emojiId))
+        {
+            return VoteType.Downvote;
+        }
+
+        return null;
     }
 }

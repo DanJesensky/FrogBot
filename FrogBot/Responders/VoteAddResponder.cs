@@ -1,6 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.Voting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
@@ -10,13 +12,14 @@ namespace FrogBot.Responders;
 
 public class VoteAddResponder : IResponder<IMessageReactionAdd>
 {
-    private const ulong ServerId = 211526836948041729L;
+    private readonly IOptions<FrogBotOptions> _botOptions;
     private readonly IVoteManager _voteManager;
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly IVoteEmojiProvider _voteEmojiProvider;
 
-    public VoteAddResponder(IVoteManager voteManager, IDiscordRestChannelAPI channelApi, IVoteEmojiProvider voteEmojiProvider)
+    public VoteAddResponder(IOptions<FrogBotOptions> botOptions, IVoteManager voteManager, IDiscordRestChannelAPI channelApi, IVoteEmojiProvider voteEmojiProvider)
     {
+        _botOptions = botOptions;
         _voteManager = voteManager;
         _channelApi = channelApi;
         _voteEmojiProvider = voteEmojiProvider;
@@ -32,6 +35,7 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
             return Result.FromSuccess();
         }
 
+        // If the vote type is null, the reaction was an emoji that isn't supported.
         var voteType = _voteEmojiProvider.GetVoteTypeFromEmoji(gatewayEvent.Emoji);
         if (voteType is null)
         {
@@ -60,7 +64,7 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
         }
 
         // Locked to this server for now
-        if (!gatewayEvent.GuildID.HasValue || gatewayEvent.GuildID.Value.Value != ServerId)
+        if (!gatewayEvent.GuildID.HasValue || gatewayEvent.GuildID.Value.Value != _botOptions.Value.ServerId)
         {
             return Result.FromSuccess();
         }
