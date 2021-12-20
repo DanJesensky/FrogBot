@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.ChatCommands;
@@ -40,8 +41,14 @@ public static class Program
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder()
             .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-            .ConfigureAppConfiguration(builder => builder.AddCommandLine(args))
+            .ConfigureAppConfiguration((context, builder) => builder.AddCommandLine(args).AddConfiguration(AddConfigDirectory(context)))
             .ConfigureServices(ConfigureServices);
+
+    private static IConfiguration AddConfigDirectory(HostBuilderContext context) =>
+        new ConfigurationBuilder()
+            .AddJsonFile(Path.Combine("config", "appsettings.json"), optional: true)
+            .AddJsonFile(Path.Combine("config", "appsettings{context.HostingEnvironment.EnvironmentName}.json"), optional: true)
+            .Build();
 
     private static void ConfigureServices(HostBuilderContext hostContext, IServiceCollection services)
     {
