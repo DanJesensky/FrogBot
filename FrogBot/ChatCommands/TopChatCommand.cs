@@ -28,16 +28,16 @@ public class TopChatCommand : IChatCommand
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
         bool isGuildMessage = message.GuildID.HasValue;
-        var topPoints = await _dbContext.Votes.AsNoTracking()
+        var topPoints = _dbContext.Votes.AsNoTracking()
             .GroupBy(v => v.ReceiverId)
             .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
             .OrderByDescending(v => v.Total)
             .Take(10)
-            .ToArrayAsync();
+            .AsAsyncEnumerable();
 
         var index = 1;
         var sb = new StringBuilder();
-        foreach (var top in topPoints)
+        await foreach (var top in topPoints)
         {
             if (isGuildMessage)
             {
