@@ -3,7 +3,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using FrogBot.ChatCommands.Authorization;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
@@ -21,12 +21,12 @@ public class EmojiIdCommand : IChatCommand
         _channelApi = channelApi;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.StartsWith("!emojiId", StringComparison.OrdinalIgnoreCase);
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.StartsWith("!emojiId", StringComparison.OrdinalIgnoreCase);
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        var matches = _emojiRegex.Matches(messageCreateEvent.Content);
+        var matches = _emojiRegex.Matches(message.Content);
 
         StringBuilder sb = new();
         foreach (Match match in matches)
@@ -34,7 +34,7 @@ public class EmojiIdCommand : IChatCommand
             sb.Append(match.Groups["fullEmoji"]).Append(' ').Append(match.Groups["id"]);
         }
 
-        await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
+        await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
 
         return Result.FromSuccess();
     }

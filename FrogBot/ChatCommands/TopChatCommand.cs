@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
@@ -22,12 +22,12 @@ public class TopChatCommand : IChatCommand
         _usernameCache = usernameCache;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.Equals("!top");
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.Equals("!top");
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        bool isGuildMessage = messageCreateEvent.GuildID.HasValue;
+        bool isGuildMessage = message.GuildID.HasValue;
         var topPoints = await _dbContext.Votes.AsNoTracking()
             .GroupBy(v => v.ReceiverId)
             .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
@@ -52,11 +52,11 @@ public class TopChatCommand : IChatCommand
 
         if (sb.Length == 0)
         {
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, "There are no eligible users to display.");
+            await _channelApi.CreateMessageAsync(message.ChannelID, "There are no eligible users to display.");
         }
         else
         {
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
+            await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
         }
         return Result.FromSuccess();
     }

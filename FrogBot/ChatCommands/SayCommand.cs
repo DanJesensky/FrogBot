@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using FrogBot.ChatCommands.Authorization;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
 using Remora.Results;
@@ -18,21 +18,21 @@ public class SayCommand : IChatCommand
         _channelApi = channelApi;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.StartsWith("!say");
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.StartsWith("!say");
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        var messageParts = messageCreateEvent.Content.Split(' ', 3,
+        var messageParts = message.Content.Split(' ', 3,
             StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
         if (messageParts.Length < 3)
         {
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, "Wrong format");
+            await _channelApi.CreateMessageAsync(message.ChannelID, "Wrong format");
         }
 
         if (!ulong.TryParse(messageParts[1], out var channelId))
         {
-            await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, "Channel id is not a long");
+            await _channelApi.CreateMessageAsync(message.ChannelID, "Channel id is not a long");
             return Result.FromSuccess();
         }
 

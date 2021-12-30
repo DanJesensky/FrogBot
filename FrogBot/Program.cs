@@ -65,6 +65,7 @@ public static class Program
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
 
         services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
+        services.AddTransient<ITikTokQuarantine, TikTokChatResponder>();
 
         services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .AddDiscordRest(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
@@ -83,6 +84,7 @@ public static class Program
             .AddResponder<RemoveAllVotesResponder>()
             .AddResponder<DeleteMessageResponder>()
             .AddResponder<UsernameChangeResponder>()
+            .AddResponder<MessageEditResponder>()
             .AddChatCommand<TestChatCommand>()
             .AddChatCommand<SayCommand>()
             .AddChatCommand<VersionCommand>()

@@ -33,7 +33,7 @@ public class DelegatingChatResponder : IResponder<IMessageCreate>
 
         foreach (var responder in _chatResponders)
         {
-            var result = await responder.RespondAsync(messageFetch.Entity, gatewayEvent, ct);
+            var result = await responder.RespondAsync(messageFetch.Entity, ct);
             if (result is not { IsSuccess: true })
             {
                 return result;
