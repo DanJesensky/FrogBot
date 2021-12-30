@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FrogBot.Voting;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
@@ -20,24 +20,24 @@ public class PointsChatCommand : IChatCommand
         _channelApi = channelApi;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.StartsWith("!points");
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.StartsWith("!points");
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
         IEnumerable<ulong> targets;
-        if (messageCreateEvent.Mentions.Count > 0)
+        if (message.Mentions.Count > 0)
         {
-            if (messageCreateEvent.Mentions.Count > 5)
+            if (message.Mentions.Count > 5)
             {
                 return Result.FromError(new InvalidOperationError("Only up to five users may be specified at once."));
             }
 
-            targets = messageCreateEvent.Mentions.Select(user => user.ID.Value);
+            targets = message.Mentions.Select(user => user.ID.Value);
         }
         else
         {
-            targets = new[] { messageCreateEvent.Author.ID.Value };
+            targets = new[] { message.Author.ID.Value };
         }
 
         var sb = new StringBuilder();
@@ -49,7 +49,7 @@ public class PointsChatCommand : IChatCommand
             sb.Append("<@").Append(target).Append(">: ").Append(votes).Append(" points").AppendLine();
         }
 
-        await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, sb.ToString());
+        await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
         return Result.FromSuccess();
     }
 }

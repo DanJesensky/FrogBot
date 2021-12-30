@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
@@ -14,12 +14,12 @@ public class VersionCommand : IChatCommand
         _channelApi = channelApi;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.Equals("!version");
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.Equals("!version");
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        await _channelApi.CreateMessageAsync(messageCreateEvent.ChannelID, typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "Version unset");
+        await _channelApi.CreateMessageAsync(message.ChannelID, typeof(Program).Assembly.GetName().Version?.ToString(3) ?? "Version unset");
         return Result.FromSuccess();
     }
 }

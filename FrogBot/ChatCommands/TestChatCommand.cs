@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using FrogBot.ChatCommands.Authorization;
-using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
@@ -16,12 +16,12 @@ public class TestChatCommand : IChatCommand
         _channelApi = channelApi;
     }
 
-    public bool CanHandleCommand(IMessageCreate messageCreateEvent) =>
-        messageCreateEvent.Content.Equals("!test");
+    public bool CanHandleCommand(IMessage message) =>
+        message.Content.Equals("!test");
 
-    public async Task<Result> HandleCommandAsync(IMessageCreate messageCreateEvent)
+    public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        await _channelApi.CreateReactionAsync(messageCreateEvent.ChannelID, messageCreateEvent.ID, "👍");
+        await _channelApi.CreateReactionAsync(message.ChannelID, message.ID, "👍");
         return Result.FromSuccess();
     }
 }
