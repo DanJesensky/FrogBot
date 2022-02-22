@@ -34,14 +34,23 @@ jobs:
       id: gitversion
       uses: gittools/actions/gitversion/execute@v0.9.11
 
+    - name: Restore tools
+      run: dotnet tool restore
+
     - name: Restore packages
       run: dotnet restore
 
+    - name: Start SonarScanner
+      run: dotnet sonarscanner begin /k:"DanJesensky_FrogBot" /o:"danjesensky" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
+
     - name: Build
-      run: 'dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}'
+      run: dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     - name: Test
       run: dotnet test --no-build
+
+    - name: End SonarScanner
+      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
     - name: Build docker image
       run: |
