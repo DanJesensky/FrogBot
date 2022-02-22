@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -29,9 +30,9 @@ public class EmojiIdCommand : IChatCommand
         var matches = _emojiRegex.Matches(message.Content);
 
         StringBuilder sb = new();
-        foreach (Match match in matches)
+        foreach (var matchGroups in matches.Select(match => match.Groups))
         {
-            sb.Append(match.Groups["fullEmoji"]).Append(' ').Append(match.Groups["id"]);
+            sb.Append(matchGroups["fullEmoji"]).Append(' ').Append(matchGroups["id"]);
         }
 
         await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());

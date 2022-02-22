@@ -41,12 +41,11 @@ public static class Program
     private static IHostBuilder CreateHostBuilder(string[] args) =>
         Host.CreateDefaultBuilder()
             .ConfigureHostConfiguration(builder => builder.AddEnvironmentVariables())
-            .ConfigureAppConfiguration((context, builder) => builder.AddCommandLine(args).AddConfiguration(AddConfigDirectory(context)))
+            .ConfigureAppConfiguration((_, builder) => builder.AddCommandLine(args).AddConfigDirectory())
             .ConfigureServices(ConfigureServices);
 
-    private static IConfiguration AddConfigDirectory(HostBuilderContext context) =>
-        new ConfigurationBuilder()
-            .AddJsonFile(Path.Combine("config", "appsettings.json"), optional: true)
+    private static IConfiguration AddConfigDirectory(this IConfigurationBuilder @this) =>
+        @this.AddJsonFile(Path.Combine("config", "appsettings.json"), optional: true)
             .AddJsonFile(Path.Combine("config", "appsettings{context.HostingEnvironment.EnvironmentName}.json"), optional: true)
             .Build();
 

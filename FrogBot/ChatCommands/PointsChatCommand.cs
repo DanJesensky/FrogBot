@@ -11,13 +11,13 @@ namespace FrogBot.ChatCommands;
 
 public class PointsChatCommand : IChatCommand
 {
-    private readonly VoteDbContext _dbContext;
     private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IVoteManager _voteManager;
 
-    public PointsChatCommand(VoteDbContext dbContext, IDiscordRestChannelAPI channelApi)
+    public PointsChatCommand(IDiscordRestChannelAPI channelApi, IVoteManager voteManager)
     {
-        _dbContext = dbContext;
         _channelApi = channelApi;
+        _voteManager = voteManager;
     }
 
     public bool CanHandleCommand(IMessage message) =>
@@ -43,9 +43,7 @@ public class PointsChatCommand : IChatCommand
         var sb = new StringBuilder();
         foreach (var target in targets)
         {
-            // TODO: This should not be here
-            var votes = _dbContext.Votes.Where(v => v.ReceiverId == target).Sum(v => (int)v.VoteType);
-
+            var votes = await _voteManager.GetScoreAsync(target);
             sb.Append("<@").Append(target).Append(">: ").Append(votes).Append(" points").AppendLine();
         }
 

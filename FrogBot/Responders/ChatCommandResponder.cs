@@ -22,7 +22,7 @@ public class ChatCommandResponder : IChatResponder
         _channelApi = channelApi;
     }
 
-    public async Task<Result> RespondAsync(IMessage message, CancellationToken ct = default)
+    public async Task<Result> RespondAsync(IMessage message, CancellationToken cancellation = default)
     {
         if (!message.Content.StartsWith("!"))
         {
@@ -38,7 +38,7 @@ public class ChatCommandResponder : IChatResponder
         var authzAttribute = matchingCommand.GetType().GetCustomAttribute<ChatCommandAuthorizationAttribute>();
         if (authzAttribute?.IsAuthorized(message.Author, message) == false)
         {
-            await _channelApi.CreateMessageAsync(message.ChannelID, "Sorry, you're not allowed to do that.", ct: ct);
+            await _channelApi.CreateMessageAsync(message.ChannelID, "Sorry, you're not allowed to do that.", ct: cancellation);
             return Result.FromSuccess();
         }
 

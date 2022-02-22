@@ -11,7 +11,9 @@ public interface IVoteManager
 
     Task RemoveAllVotesAsync(ulong channel, ulong message);
 
-    Task<IEnumerable<Vote>> GetVotesAsync(ulong channel, ulong message);
+    Task<IEnumerable<Vote>> GetMessageVotesAsync(ulong channel, ulong message);
+
+    Task<long> GetScoreAsync(ulong userId);
 
     Task RemoveVotesAsync(ulong channel, ulong message, VoteType type);
 }

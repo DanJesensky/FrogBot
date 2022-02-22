@@ -92,11 +92,17 @@ public class VoteManager : IVoteManager
         }
     }
 
-    public async Task<IEnumerable<Vote>> GetVotesAsync(ulong channel, ulong message) =>
+    public async Task<IEnumerable<Vote>> GetMessageVotesAsync(ulong channel, ulong message) =>
         await _dbContext.Votes
             .AsNoTracking()
             .Where(vote => vote.ChannelId == channel && vote.MessageId == message)
             .ToArrayAsync();
+
+    public async Task<long> GetScoreAsync(ulong userId) =>
+        await _dbContext.Votes
+            .AsNoTracking()
+            .Where(v => v.ReceiverId == userId)
+            .SumAsync(v => (int)v.VoteType);
 
     public async Task RemoveVotesAsync(ulong channel, ulong message, VoteType type)
     {
