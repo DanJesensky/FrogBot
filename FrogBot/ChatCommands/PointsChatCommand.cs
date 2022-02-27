@@ -21,7 +21,8 @@ public class PointsChatCommand : IChatCommand
     }
 
     public bool CanHandleCommand(IMessage message) =>
-        message.Content.StartsWith("!points");
+        // ReSharper disable once StringLiteralTypo
+        message.Content.StartsWith("!points") || message.Content.StartsWith("!pointys");
 
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
