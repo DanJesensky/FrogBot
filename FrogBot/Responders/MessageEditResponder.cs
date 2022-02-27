@@ -12,9 +12,9 @@ namespace FrogBot.Responders;
 public class MessageEditResponder : IResponder<IMessageUpdate>
 {
     private readonly ITikTokQuarantine _quarantine;
-    private readonly IDiscordRestChannelAPI _channel;
+    private readonly IMessageRetriever _channel;
 
-    public MessageEditResponder(ITikTokQuarantine quarantine, IDiscordRestChannelAPI channel)
+    public MessageEditResponder(ITikTokQuarantine quarantine, IMessageRetriever channel)
     {
         _quarantine = quarantine;
         _channel = channel;
@@ -22,20 +22,18 @@ public class MessageEditResponder : IResponder<IMessageUpdate>
 
     public async Task<Result> RespondAsync(IMessageUpdate gatewayEvent, CancellationToken ct = default)
     {
-        IMessage message;
+        IMessage? message;
         if (gatewayEvent.ReferencedMessage.HasValue && gatewayEvent.ReferencedMessage.Value != null)
         {
             message = gatewayEvent.ReferencedMessage.Value;
         }
         else
         {
-            var messageFetch = await _channel.GetChannelMessageAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, ct);
-            if (!messageFetch.IsSuccess)
+            message = await _channel.RetrieveMessageAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, ct);
+            if (message == null)
             {
                 return Result.FromError<string>("Message does not exist.");
             }
-
-            message = messageFetch.Entity;
         }
 
         return await _quarantine.RespondAsync(message, ct);

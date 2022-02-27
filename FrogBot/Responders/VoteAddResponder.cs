@@ -15,15 +15,15 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
     private readonly ILogger<VoteAddResponder> _logger;
     private readonly IOptions<FrogBotOptions> _botOptions;
     private readonly IVoteManager _voteManager;
-    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IMessageRetriever _messageRetriever;
     private readonly IVoteEmojiProvider _voteEmojiProvider;
-
-    public VoteAddResponder(ILogger<VoteAddResponder> logger, IOptions<FrogBotOptions> botOptions, IVoteManager voteManager, IDiscordRestChannelAPI channelApi, IVoteEmojiProvider voteEmojiProvider)
+    
+    public VoteAddResponder(ILogger<VoteAddResponder> logger, IOptions<FrogBotOptions> botOptions, IVoteManager voteManager, IMessageRetriever messageRetriever, IVoteEmojiProvider voteEmojiProvider)
     {
         _logger = logger;
         _botOptions = botOptions;
         _voteManager = voteManager;
-        _channelApi = channelApi;
+        _messageRetriever = messageRetriever;
         _voteEmojiProvider = voteEmojiProvider;
     }
 
@@ -47,16 +47,16 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
         }
 
         // Fetch message details from Discord
-        var messageResult = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
-        if (!messageResult.IsSuccess)
+        var message = await _messageRetriever.RetrieveMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+        if (message == null)
         {
             _logger.LogError("Failed to record vote type {voteType} for message {messageId}: the message does not exist.", voteType, gatewayEvent.MessageID);
             await _voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value);
-            return Result.FromError(messageResult.Error);
+            return Result.FromError<string>("Message does not exist.");
         }
 
         // Users can't vote on bots.
-        var author = messageResult.Entity.Author;
+        var author = message.Author;
         if (author.IsBot.HasValue && author.IsBot.Value)
         {
             _logger.LogDebug("Ignoring user vote on bot message {messageId}", gatewayEvent.MessageID);

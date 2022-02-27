@@ -13,19 +13,19 @@ public class DelegatingChatResponder : IResponder<IMessageCreate>
 {
     private readonly IEnumerable<IChatResponder> _chatResponders;
     private readonly ILogger<DelegatingChatResponder> _logger;
-    private readonly IDiscordRestChannelAPI _channel;
+    private readonly IMessageRetriever _messageRetriever;
 
-    public DelegatingChatResponder(IEnumerable<IChatResponder> chatResponders, ILogger<DelegatingChatResponder> logger, IDiscordRestChannelAPI channel)
+    public DelegatingChatResponder(IEnumerable<IChatResponder> chatResponders, ILogger<DelegatingChatResponder> logger, IMessageRetriever messageRetriever)
     {
         _chatResponders = chatResponders;
         _logger = logger;
-        _channel = channel;
+        _messageRetriever = messageRetriever;
     }
 
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = default)
     {
-        var messageFetch = await _channel.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.ID, ct);
-        if (messageFetch is not { IsSuccess: true, Entity: not null })
+        var message = await _messageRetriever.RetrieveMessageAsync(gatewayEvent.ChannelID, gatewayEvent.ID, ct);
+        if (message == null)
         {
             _logger.LogDebug("Message {messageId} is not a valid reference, ignoring message", gatewayEvent.ID);
             return Result.FromSuccess();
@@ -33,7 +33,7 @@ public class DelegatingChatResponder : IResponder<IMessageCreate>
 
         foreach (var responder in _chatResponders)
         {
-            var result = await responder.RespondAsync(messageFetch.Entity, ct);
+            var result = await responder.RespondAsync(message, ct);
             if (result is not { IsSuccess: true })
             {
                 return result;

@@ -1,6 +1,8 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.Voting;
+using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
@@ -11,10 +13,10 @@ namespace FrogBot.Responders;
 public class VoteRemoveResponder : IResponder<IMessageReactionRemove>
 {
     private readonly IVoteManager _voteManager;
-    private readonly IDiscordRestChannelAPI _channelApi;
+    private readonly IMessageRetriever _channelApi;
     private readonly IVoteEmojiProvider _voteEmojiProvider;
 
-    public VoteRemoveResponder(IVoteManager voteManager, IDiscordRestChannelAPI channelApi, IVoteEmojiProvider voteEmojiProvider)
+    public VoteRemoveResponder(IVoteManager voteManager, IMessageRetriever channelApi, IVoteEmojiProvider voteEmojiProvider)
     {
         _voteManager = voteManager;
         _channelApi = channelApi;
@@ -29,14 +31,14 @@ public class VoteRemoveResponder : IResponder<IMessageReactionRemove>
             return Result.FromSuccess();
         }
 
-        var message = await _channelApi.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
-        if (!message.IsSuccess)
+        var message = await _channelApi.RetrieveMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+        if (message == null)
         {
             await _voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value);
-            return Result.FromError(message.Error);
+            return Result.FromError<string>("Message does not exist.");
         }
 
-        await _voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, message.Entity.Author.ID.Value,
+        await _voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, message.Author.ID.Value,
             gatewayEvent.UserID.Value, voteType.Value);
 
         return Result.FromSuccess();

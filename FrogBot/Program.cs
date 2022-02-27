@@ -7,6 +7,7 @@ using FrogBot.Responders;
 using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -62,6 +63,9 @@ public static class Program
         services.AddTransient<IVoteManager, VoteManager>();
         services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
+        services.AddTransient<IMessageRetriever, CachingMessageRetriever>();
+        services.AddMemoryCache();
+        services.Configure<MemoryCacheOptions>(hostContext.Configuration.GetSection("Caching"));
 
         services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
         services.AddTransient<ITikTokQuarantine, TikTokChatResponder>();
