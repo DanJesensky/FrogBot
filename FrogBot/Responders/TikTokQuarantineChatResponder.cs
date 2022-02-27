@@ -1,8 +1,6 @@
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.TikTok;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -11,31 +9,23 @@ using Remora.Results;
 
 namespace FrogBot.Responders
 {
-    public class TikTokChatResponder : IChatResponder, ITikTokQuarantine
+    public class TikTokChatResponder : IChatResponder, ITikTokQuarantineResponder
     {
-        private static readonly Regex _tiktokRegex = new("https??://(?:.*\\.)?tiktok.com", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        private readonly ILogger<TikTokChatResponder> _logger;
         private readonly IDiscordRestChannelAPI _channel;
         private readonly IOptionsMonitor<TikTokOptions> _tiktokOptions;
+        private readonly ITikTokQuarantineManager _quarantineManager;
 
-        public TikTokChatResponder(ILogger<TikTokChatResponder> logger, IDiscordRestChannelAPI channel, IOptionsMonitor<TikTokOptions> tiktokOptions)
+        public TikTokChatResponder(IDiscordRestChannelAPI channel, IOptionsMonitor<TikTokOptions> tiktokOptions, ITikTokQuarantineManager quarantineManager)
         {
-            _logger = logger;
             _channel = channel;
             _tiktokOptions = tiktokOptions;
+            _quarantineManager = quarantineManager;
         }
 
         public async Task<Result> RespondAsync(IMessage message, CancellationToken cancellation = default)
         {
-            if (message.ChannelID.Value == _tiktokOptions.CurrentValue.TikTokChannelId)
+            if (!_quarantineManager.ShouldMessageBeQuarantined(message))
             {
-                _logger.LogDebug("Message {messageId} is in the TikTok channel, ignoring", message.ID);
-                return Result.FromSuccess();
-            }
-
-            if (!_tiktokRegex.IsMatch(message.Content))
-            {
-                _logger.LogTrace("Message {messageId} does not contain a TikTok link", message.ID);
                 return Result.FromSuccess();
             }
 

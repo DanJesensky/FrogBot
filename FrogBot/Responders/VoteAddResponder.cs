@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,14 +17,16 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
     private readonly IVoteManager _voteManager;
     private readonly IMessageRetriever _messageRetriever;
     private readonly IVoteEmojiProvider _voteEmojiProvider;
-    
-    public VoteAddResponder(ILogger<VoteAddResponder> logger, IOptions<FrogBotOptions> botOptions, IVoteManager voteManager, IMessageRetriever messageRetriever, IVoteEmojiProvider voteEmojiProvider)
+    private readonly ITikTokQuarantineManager _quarantine;
+
+    public VoteAddResponder(ILogger<VoteAddResponder> logger, IOptions<FrogBotOptions> botOptions, IVoteManager voteManager, IMessageRetriever messageRetriever, IVoteEmojiProvider voteEmojiProvider, ITikTokQuarantineManager quarantine)
     {
         _logger = logger;
         _botOptions = botOptions;
         _voteManager = voteManager;
         _messageRetriever = messageRetriever;
         _voteEmojiProvider = voteEmojiProvider;
+        _quarantine = quarantine;
     }
 
     public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent, CancellationToken ct = default)
@@ -54,8 +57,9 @@ public class VoteAddResponder : IResponder<IMessageReactionAdd>
             return Result.FromError<string>("Message does not exist.");
         }
 
-        // Users can't vote on bots.
-        var author = message.Author;
+        // Users can't vote on bots, except for in the TikTok quarantine.
+        // In that case, the vote is attributed to the original author whose message was deleted for quarantine.
+        var author = _quarantine.GetSubstituteQuarantineAuthor(message);
         if (author.IsBot.HasValue && author.IsBot.Value)
         {
             _logger.LogDebug("Ignoring user vote on bot message {messageId}", gatewayEvent.MessageID);

@@ -1,8 +1,7 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using FrogBot.TikTok;
 using FrogBot.Voting;
-using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
@@ -14,12 +13,14 @@ public class VoteRemoveResponder : IResponder<IMessageReactionRemove>
     private readonly IVoteManager _voteManager;
     private readonly IMessageRetriever _channelApi;
     private readonly IVoteEmojiProvider _voteEmojiProvider;
+    private readonly ITikTokQuarantineManager _quarantine;
 
-    public VoteRemoveResponder(IVoteManager voteManager, IMessageRetriever channelApi, IVoteEmojiProvider voteEmojiProvider)
+    public VoteRemoveResponder(IVoteManager voteManager, IMessageRetriever channelApi, IVoteEmojiProvider voteEmojiProvider, ITikTokQuarantineManager quarantine)
     {
         _voteManager = voteManager;
         _channelApi = channelApi;
         _voteEmojiProvider = voteEmojiProvider;
+        _quarantine = quarantine;
     }
 
     public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent, CancellationToken ct = default)
@@ -37,7 +38,9 @@ public class VoteRemoveResponder : IResponder<IMessageReactionRemove>
             return Result.FromError<string>("Message does not exist.");
         }
 
-        await _voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, message.Author.ID.Value,
+        var author = _quarantine.GetSubstituteQuarantineAuthor(message);
+
+        await _voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, author.ID.Value,
             gatewayEvent.UserID.Value, voteType.Value);
 
         return Result.FromSuccess();

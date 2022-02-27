@@ -10,10 +10,10 @@ namespace FrogBot.Responders;
 
 public class MessageEditResponder : IResponder<IMessageUpdate>
 {
-    private readonly ITikTokQuarantine _quarantine;
+    private readonly ITikTokQuarantineResponder _quarantine;
     private readonly IMessageRetriever _channel;
 
-    public MessageEditResponder(ITikTokQuarantine quarantine, IMessageRetriever channel)
+    public MessageEditResponder(ITikTokQuarantineResponder quarantine, IMessageRetriever channel)
     {
         _quarantine = quarantine;
         _channel = channel;

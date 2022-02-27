@@ -68,7 +68,8 @@ public static class Program
         services.Configure<MemoryCacheOptions>(hostContext.Configuration.GetSection("Caching"));
 
         services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
-        services.AddTransient<ITikTokQuarantine, TikTokChatResponder>();
+        services.AddTransient<ITikTokQuarantineResponder, TikTokChatResponder>();
+        services.AddTransient<ITikTokQuarantineManager, TikTokQuarantineManager>();
 
         services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .AddDiscordRest(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
