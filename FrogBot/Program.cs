@@ -73,6 +73,7 @@ public static class Program
                 opt.Intents =
                     GatewayIntents.Guilds |
                     GatewayIntents.GuildMessages |
+                    GatewayIntents.MessageContents |
                     GatewayIntents.GuildMessageReactions |
                     GatewayIntents.DirectMessages;
             })
