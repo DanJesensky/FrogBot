@@ -50,7 +50,7 @@ jobs:
         run: dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
 
       - name: Test
-        run: dotnet test --no-build
+        run: dotnet test --no-build -o .artifacts/
 
       - name: End SonarScanner
         env:

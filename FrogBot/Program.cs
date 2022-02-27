@@ -90,6 +90,8 @@ public static class Program
             .AddChatCommand<TopChatCommand>()
             .AddChatCommand<PointsChatCommand>()
             .AddChatCommand<EmojiIdCommand>()
+            .AddChatCommand<VoteBanCommand>()
+            .AddChatCommand<VoteUnbanCommand>()
             .AddChatResponder<ChatCommandResponder>()
             .AddChatResponder<TikTokChatResponder>();
     }
