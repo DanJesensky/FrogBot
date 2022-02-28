@@ -47,16 +47,19 @@ jobs:
       run: dotnet sonarscanner begin /k:"DanJesensky_FrogBot" /o:"danjesensky" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io"
 
     - name: Build
-      run: dotnet build --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
+      run: dotnet build --no-restore -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     - name: Test
-      run: dotnet test --no-build
+      run: dotnet test --no-build -c release --collect "XPlat Code Coverage" --results-directory=".tests/"
 
     - name: End SonarScanner
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+
+    - name: Publish
+      run: dotnet publish --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     - name: Build docker image
       run: |
