@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +21,7 @@ using Remora.Discord.Rest.Extensions;
 
 namespace FrogBot;
 
+[ExcludeFromCodeCoverage]
 public static class Program
 {
     public static async Task Main(string[] args)

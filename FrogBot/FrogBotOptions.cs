@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace FrogBot;
 
+[ExcludeFromCodeCoverage]
 public class FrogBotOptions
 {
     public string Token { get; set; } = null!;

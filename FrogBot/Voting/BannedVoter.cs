@@ -1,10 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FrogBot.Voting
+namespace FrogBot.Voting;
+
+public class BannedVoter
 {
-    public class BannedVoter
-    {
-        [Key]
-        public ulong UserId { get; set; }
-    }
+    [Key]
+    public ulong UserId { get; set; }
 }
