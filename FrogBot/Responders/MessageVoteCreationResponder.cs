@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -19,17 +20,20 @@ public class MessageVoteCreationResponder : IResponder<IMessageCreate>
     private readonly ILogger<MessageVoteCreationResponder> _logger;
     private readonly IOptions<VoteOptions> _voteOptions;
     private readonly IDiscordRestChannelAPI _messageApi;
+    private readonly ITikTokQuarantineManager _tikTokQuarantine;
 
-    public MessageVoteCreationResponder(ILogger<MessageVoteCreationResponder> logger, IOptions<VoteOptions> voteOptions, IDiscordRestChannelAPI messageApi)
+    public MessageVoteCreationResponder(ILogger<MessageVoteCreationResponder> logger, IOptions<VoteOptions> voteOptions, IDiscordRestChannelAPI messageApi, ITikTokQuarantineManager tikTokQuarantine)
     {
         _logger = logger;
         _voteOptions = voteOptions;
         _messageApi = messageApi;
+        _tikTokQuarantine = tikTokQuarantine;
     }
 
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = default)
     {
-        if (gatewayEvent.Author.IsBot.HasValue && gatewayEvent.Author.IsBot.Value)
+        var author = _tikTokQuarantine.GetSubstituteQuarantineAuthor(gatewayEvent);
+        if (author.IsBot.HasValue && author.IsBot.Value)
         {
             return Result.FromSuccess();
         }

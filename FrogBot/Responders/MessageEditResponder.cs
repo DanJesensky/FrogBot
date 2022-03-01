@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using FrogBot.TikTok;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
@@ -11,9 +12,9 @@ namespace FrogBot.Responders;
 public class MessageEditResponder : IResponder<IMessageUpdate>
 {
     private readonly ITikTokQuarantineResponder _quarantine;
-    private readonly IMessageRetriever _channel;
+    private readonly IDiscordRestChannelAPI _channel;
 
-    public MessageEditResponder(ITikTokQuarantineResponder quarantine, IMessageRetriever channel)
+    public MessageEditResponder(ITikTokQuarantineResponder quarantine, IDiscordRestChannelAPI channel)
     {
         _quarantine = quarantine;
         _channel = channel;
@@ -28,11 +29,13 @@ public class MessageEditResponder : IResponder<IMessageUpdate>
         }
         else
         {
-            message = await _channel.RetrieveMessageAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, ct);
-            if (message == null)
+            var messageFetch = await _channel.GetChannelMessageAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, ct);
+            if (messageFetch is { IsSuccess: false })
             {
                 return Result.FromError<string>("Message does not exist.");
             }
+
+            message = messageFetch.Entity;
         }
 
         return await _quarantine.RespondAsync(message, ct);
