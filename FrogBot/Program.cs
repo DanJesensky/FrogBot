@@ -96,6 +96,7 @@ public static class Program
             .AddChatCommand<SayCommand>()
             .AddChatCommand<VersionCommand>()
             .AddChatCommand<TopChatCommand>()
+            .AddChatCommand<WorstChatCommand>()
             .AddChatCommand<PointsChatCommand>()
             .AddChatCommand<EmojiIdCommand>()
             .AddChatCommand<VoteBanCommand>()
