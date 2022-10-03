@@ -28,7 +28,7 @@ public class TopChatCommand : IChatCommand
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
         var channel = await _channelApi.GetChannelAsync(message.ChannelID);
-        bool isGuildMessage = channel.Entity.GuildID.HasValue;
+        var isGuildMessage = channel.Entity.GuildID.HasValue;
         var topPoints = await _dbContext.Votes.AsNoTracking()
             .GroupBy(v => v.ReceiverId)
             .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })

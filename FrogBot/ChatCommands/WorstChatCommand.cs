@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,23 +24,30 @@ public class WorstChatCommand : IChatCommand
     }
 
     public bool CanHandleCommand(IMessage message) =>
-        message.Content.Equals("!worst");
+        message.Content.StartsWith("!worst");
 
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
         var channel = await _channelApi.GetChannelAsync(message.ChannelID);
         var isGuildMessage = channel.Entity.GuildID.HasValue;
+
+        // Default to 1, allow a requested maximum of 10
+        var requestedCount = message.Content.Split(' ', 2).Last();
+        _ = int.TryParse(requestedCount, out var parsedRequestedCount);
+        var count = Math.Max(1, Math.Min(parsedRequestedCount, 10));
+
         var topPoints = await _dbContext.Votes.AsNoTracking()
             .GroupBy(v => v.ReceiverId)
             .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
             .OrderBy(v => v.Total)
-            .Take(10)
+            .Take(count)
             .ToArrayAsync();
 
         var index = await _dbContext.Votes
             .Select(v => v.ReceiverId)
             .Distinct()
             .CountAsync();
+
         var sb = new StringBuilder();
         foreach (var top in topPoints)
         {
