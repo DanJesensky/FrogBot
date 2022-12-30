@@ -17,6 +17,7 @@ using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Discord.Rest;
 using Remora.Discord.Rest.Extensions;
 
 namespace FrogBot;
@@ -74,7 +75,7 @@ public static class Program
         services.AddTransient<ITikTokQuarantineManager, TikTokQuarantineManager>();
 
         services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
-            .AddDiscordRest(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
+            .AddDiscordRest(sp => (sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token, DiscordTokenType.Bot))
             .Configure<DiscordGatewayClientOptions>(opt =>
             {
                 opt.Intents =

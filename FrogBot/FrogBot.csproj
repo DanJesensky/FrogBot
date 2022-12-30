@@ -2,30 +2,30 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="6.0.2">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.1">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.2" />
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="6.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
-      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.3" />
-      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
-      <PackageReference Include="Remora.Discord" Version="2022.12.0" />
-      <PackageReference Include="Remora.Discord.API" Version="52.0.0" />
-      <PackageReference Include="Remora.Discord.Gateway" Version="7.0.1" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.1" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.2" />
+      <PackageReference Include="Remora.Discord" Version="2022.53.0" />
+      <PackageReference Include="Remora.Discord.API" Version="70.0.0" />
+      <PackageReference Include="Remora.Discord.Gateway" Version="11.0.3" />
     </ItemGroup>
 
     <ItemGroup>

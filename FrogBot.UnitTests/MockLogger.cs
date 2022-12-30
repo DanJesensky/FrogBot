@@ -25,12 +25,12 @@ public class MockLogger<T> : ILogger<T>
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
-    public IDisposable BeginScope<TState>(TState state) => Mock.Of<IDisposable>();
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => Mock.Of<IDisposable>();
 
     public class LogMessage
     {
-        public LogLevel LogLevel { get; set; }
+        public LogLevel LogLevel { get; init; }
         public Exception? Exception { get; set; }
-        public string Message { get; set; } = null!;
+        public string Message { get; init; } = null!;
     }
 }
