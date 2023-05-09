@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,6 @@ using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
@@ -26,12 +26,12 @@ public class VoteBanCommandTests
         var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null);
         var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null);
 
-        var messageCreateEventMock = new Mock<IMessageCreate>();
+        var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
         messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
         messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
         messageCreateEventMock.Setup(m => m.Content).Returns("!voteban <@9999>");
-        messageCreateEventMock.Setup(m => m.Mentions).Returns(new List<IUserMention> { targetUser });
+        messageCreateEventMock.Setup(m => m.Mentions).Returns(new ReadOnlyCollection<IUserMention>(new List<IUserMention> { targetUser }));
 
         var sut = new VoteBanCommand(dbContext, Mock.Of<IDiscordRestChannelAPI>(), Mock.Of<ILogger<VoteBanCommand>>());
         await sut.HandleCommandAsync(messageCreateEventMock.Object);
@@ -48,7 +48,7 @@ public class VoteBanCommandTests
         var targetUser1 = new UserMention(new Snowflake(9999L), "admin", 1234, null);
         var targetUser2 = new UserMention(new Snowflake(9998L), "admin", 4321, null);
 
-        var messageCreateEventMock = new Mock<IMessageCreate>();
+        var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
         messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
         messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
@@ -79,7 +79,7 @@ public class VoteBanCommandTests
         var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null);
         var targetUser1 = new UserMention(new Snowflake(9999L), "admin", 1234, null);
 
-        var messageCreateEventMock = new Mock<IMessageCreate>();
+        var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
         messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
         messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
