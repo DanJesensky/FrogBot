@@ -1,4 +1,6 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0
+FROM mcr.microsoft.com/dotnet/sdk:7.0
+
+USER 51515
 
 COPY .artifacts /frogbot
 
