@@ -68,14 +68,13 @@ public static class Program
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
         services.AddTransient<IMessageRetriever, CachingMessageRetriever>();
         services.AddMemoryCache();
-        services.Configure<MemoryCacheOptions>(hostContext.Configuration.GetSection("Caching"));
 
         services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
         services.AddTransient<ITikTokQuarantineResponder, TikTokChatResponder>();
         services.AddTransient<ITikTokQuarantineManager, TikTokQuarantineManager>();
 
-        services.AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
-            .AddDiscordRest(sp => (sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token, DiscordTokenType.Bot))
+        services
+            .AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
             .Configure<DiscordGatewayClientOptions>(opt =>
             {
                 opt.Intents =
@@ -83,7 +82,8 @@ public static class Program
                     GatewayIntents.GuildMessages |
                     GatewayIntents.MessageContents |
                     GatewayIntents.GuildMessageReactions |
-                    GatewayIntents.DirectMessages;
+                    GatewayIntents.DirectMessages |
+                    GatewayIntents.DirectMessageReactions;
             })
             .AddResponder<DelegatingChatResponder>()
             .AddResponder<MessageVoteCreationResponder>()
