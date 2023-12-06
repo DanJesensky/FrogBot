@@ -16,9 +16,9 @@ public class CachingMessageRetriever : IMessageRetriever
     private static readonly TimeSpan _absoluteExpiration = TimeSpan.FromMinutes(15);
     private readonly IDiscordRestChannelAPI _channelApi;
     private readonly ILogger<CachingMessageRetriever> _logger;
-    private readonly IMemoryCache _cache;
+    private readonly BotMemoryCache _cache;
 
-    public CachingMessageRetriever(IDiscordRestChannelAPI channelApi, ILogger<CachingMessageRetriever> logger, IMemoryCache cache)
+    public CachingMessageRetriever(IDiscordRestChannelAPI channelApi, ILogger<CachingMessageRetriever> logger, BotMemoryCache cache)
     {
         _channelApi = channelApi;
         _logger = logger;
@@ -36,7 +36,7 @@ public class CachingMessageRetriever : IMessageRetriever
                 return null;
             }
 
-            entry.SetSize(MessageCacheItemSize)
+            entry.SetSize(MessageCacheItemSize + result.Entity.Content.Length)
                 .SetSlidingExpiration(_slidingExpiration)
                 .SetAbsoluteExpiration(_absoluteExpiration);
 

@@ -67,11 +67,14 @@ public static class Program
         services.AddTransient<IVoteEmojiProvider, VoteEmojiProvider>();
         services.AddTransient<IUsernameCachingService, UsernameCachingService>();
         services.AddTransient<IMessageRetriever, CachingMessageRetriever>();
-        services.AddMemoryCache();
+        services.AddMemoryCache()
+            .AddSingleton<BotMemoryCache>();
 
         services.Configure<TikTokOptions>(hostContext.Configuration.GetSection("TikTok"));
         services.AddTransient<ITikTokQuarantineResponder, TikTokChatResponder>();
         services.AddTransient<ITikTokQuarantineManager, TikTokQuarantineManager>();
+
+        services.Configure<BotMemoryCacheOptions>(hostContext.Configuration.GetSection(ConfigurationKeys.Caching));
 
         services
             .AddDiscordGateway(sp => sp.GetRequiredService<IOptions<FrogBotOptions>>().Value.Token)
