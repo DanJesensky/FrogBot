@@ -26,13 +26,13 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Install gitversion
-      uses: gittools/actions/gitversion/setup@v0.9.11
+      uses: gittools/actions/gitversion/setup@v0.10.2
       with:
         versionSpec: '5.x'
 
     - name: Invoke gitversion
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.11
+      uses: gittools/actions/gitversion/execute@v0.10.2
 
     - name: Restore tools
       run: dotnet tool restore
@@ -59,7 +59,7 @@ jobs:
       run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
 
     - name: Publish
-      run: dotnet publish --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
+      run: dotnet publish FrogBot/FrogBot.csproj --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
 
     - name: Build docker image
       run: |
@@ -69,11 +69,11 @@ jobs:
           -t "${{ env.CONTAINER_REPO }}/${{ env.IMAGE_NAME }}:${{ steps.gitversion.outputs.semVer }}"
 
     - name: Log into GitHub container registry
-      uses: docker/login-action@v1
+      uses: docker/login-action@v3.0.0
       with:
         registry: ${{ env.CONTAINER_REPO }}
         username: ${{ github.actor }}
-        password: ${{ secrets.CR_ACCESS_TOKEN }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push to Container Repository
       run: |
