@@ -8,39 +8,31 @@ using Remora.Results;
 
 namespace FrogBot.Responders;
 
-public class VoteRemoveResponder : IResponder<IMessageReactionRemove>
+public class VoteRemoveResponder(
+    IVoteManager voteManager,
+    IMessageRetriever channelApi,
+    IVoteEmojiProvider voteEmojiProvider,
+    ITikTokQuarantineManager quarantine)
+    : IResponder<IMessageReactionRemove>
 {
-    private readonly IVoteManager _voteManager;
-    private readonly IMessageRetriever _channelApi;
-    private readonly IVoteEmojiProvider _voteEmojiProvider;
-    private readonly ITikTokQuarantineManager _quarantine;
-
-    public VoteRemoveResponder(IVoteManager voteManager, IMessageRetriever channelApi, IVoteEmojiProvider voteEmojiProvider, ITikTokQuarantineManager quarantine)
-    {
-        _voteManager = voteManager;
-        _channelApi = channelApi;
-        _voteEmojiProvider = voteEmojiProvider;
-        _quarantine = quarantine;
-    }
-
     public async Task<Result> RespondAsync(IMessageReactionRemove gatewayEvent, CancellationToken ct = default)
     {
-        var voteType = _voteEmojiProvider.GetVoteTypeFromEmoji(gatewayEvent.Emoji);
+        var voteType = voteEmojiProvider.GetVoteTypeFromEmoji(gatewayEvent.Emoji);
         if (voteType is null)
         {
             return Result.FromSuccess();
         }
 
-        var message = await _channelApi.RetrieveMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
+        var message = await channelApi.RetrieveMessageAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, ct);
         if (message == null)
         {
-            await _voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value);
+            await voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value);
             return Result.FromError<string>("Message does not exist.");
         }
 
-        var author = _quarantine.GetSubstituteQuarantineAuthor(message);
+        var author = quarantine.GetSubstituteQuarantineAuthor(message);
 
-        await _voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, author.ID.Value,
+        await voteManager.RemoveVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, author.ID.Value,
             gatewayEvent.UserID.Value, voteType.Value);
 
         return Result.FromSuccess();

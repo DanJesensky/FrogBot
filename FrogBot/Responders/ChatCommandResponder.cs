@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.ChatCommands;
 using FrogBot.ChatCommands.Authorization;
+using JetBrains.Annotations;
 using Remora.Commands.Extensions;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
@@ -11,25 +12,18 @@ using Remora.Results;
 
 namespace FrogBot.Responders;
 
-public class ChatCommandResponder : IChatResponder
+[UsedImplicitly]
+public class ChatCommandResponder(IEnumerable<IChatCommand> commands, IDiscordRestChannelAPI channelApi)
+    : IChatResponder
 {
-    private readonly IEnumerable<IChatCommand> _chatCommands;
-    private readonly IDiscordRestChannelAPI _channelApi;
-
-    public ChatCommandResponder(IEnumerable<IChatCommand> commands, IDiscordRestChannelAPI channelApi)
-    {
-        _chatCommands = commands;
-        _channelApi = channelApi;
-    }
-
     public async Task<Result> RespondAsync(IMessage message, CancellationToken cancellation = default)
     {
-        if (!message.Content.StartsWith("!"))
+        if (!message.Content.StartsWith('!'))
         {
             return Result.FromSuccess();
         }
 
-        var matchingCommand = _chatCommands.FirstOrDefault(command => command.CanHandleCommand(message));
+        var matchingCommand = commands.FirstOrDefault(command => command.CanHandleCommand(message));
         if (matchingCommand == null)
         {
             return Result.FromSuccess();
@@ -38,7 +32,7 @@ public class ChatCommandResponder : IChatResponder
         var authzAttribute = matchingCommand.GetType().GetCustomAttribute<ChatCommandAuthorizationAttribute>();
         if (authzAttribute?.IsAuthorized(message.Author, message) == false)
         {
-            await _channelApi.CreateMessageAsync(message.ChannelID, "Sorry, you're not allowed to do that.", ct: cancellation);
+            await channelApi.CreateMessageAsync(message.ChannelID, "Sorry, you're not allowed to do that.", ct: cancellation);
             return Result.FromSuccess();
         }
 

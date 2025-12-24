@@ -6,31 +6,25 @@ using Remora.Discord.API.Abstractions.Objects;
 
 namespace FrogBot.TikTok;
 
-public class TikTokQuarantineManager : ITikTokQuarantineManager
+public partial class TikTokQuarantineManager(
+    IOptionsMonitor<TikTokOptions> tiktokOptions,
+    IOptionsMonitor<FrogBotOptions> botOptions,
+    ILogger<TikTokQuarantineManager> logger)
+    : ITikTokQuarantineManager
 {
-    private static readonly Regex _tiktokRegex = new("https??://(?:.*\\.)?tiktok.com", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-    private readonly IOptionsMonitor<TikTokOptions> _tiktokOptions;
-    private readonly IOptionsMonitor<FrogBotOptions> _botOptions;
-    private readonly ILogger<TikTokQuarantineManager> _logger;
-
-    public TikTokQuarantineManager(IOptionsMonitor<TikTokOptions> tiktokOptions, IOptionsMonitor<FrogBotOptions> botOptions, ILogger<TikTokQuarantineManager> logger)
-    {
-        _tiktokOptions = tiktokOptions;
-        _botOptions = botOptions;
-        _logger = logger;
-    }
+    private static readonly Regex TiktokRegex = GenerateTiktokRegex();
 
     public bool ShouldMessageBeQuarantined(IMessage message)
     {
-        if (message.ChannelID.Value == _tiktokOptions.CurrentValue.TikTokChannelId)
+        if (message.ChannelID.Value == tiktokOptions.CurrentValue.TikTokChannelId)
         {
-            _logger.LogDebug("Message {messageId} is in the TikTok channel, ignoring", message.ID);
+            logger.LogDebug("Message {messageId} is in the TikTok channel, ignoring", message.ID);
             return false;
         }
 
-        if (!_tiktokRegex.IsMatch(message.Content))
+        if (!TiktokRegex.IsMatch(message.Content))
         {
-            _logger.LogTrace("Message {messageId} does not contain a TikTok link", message.ID);
+            logger.LogTrace("Message {messageId} does not contain a TikTok link", message.ID);
             return false;
         }
 
@@ -42,8 +36,8 @@ public class TikTokQuarantineManager : ITikTokQuarantineManager
         // Users can't vote on bots, except for in the TikTok quarantine.
         // In that case, the vote is attributed to the original author whose message was deleted for quarantine.
         var author = message.Author;
-        if (author.ID.Value != _botOptions.CurrentValue.BotUserId || 
-            message.ChannelID.Value != _tiktokOptions.CurrentValue.TikTokChannelId)
+        if (author.ID.Value != botOptions.CurrentValue.BotUserId || 
+            message.ChannelID.Value != tiktokOptions.CurrentValue.TikTokChannelId)
         {
             return author;
         }
@@ -58,4 +52,7 @@ public class TikTokQuarantineManager : ITikTokQuarantineManager
 
         return author;
     }
+
+    [GeneratedRegex("https??://(?:.*\\.)?tiktok.com", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex GenerateTiktokRegex();
 }

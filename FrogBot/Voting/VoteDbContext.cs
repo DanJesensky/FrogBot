@@ -3,13 +3,8 @@ using Microsoft.EntityFrameworkCore;
 #nullable disable
 namespace FrogBot.Voting;
 
-public class VoteDbContext : DbContext
+public class VoteDbContext(DbContextOptions<VoteDbContext> options) : DbContext(options)
 {
-    public VoteDbContext(DbContextOptions<VoteDbContext> options)
-        : base(options)
-    {
-    }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

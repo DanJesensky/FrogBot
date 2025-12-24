@@ -5,29 +5,22 @@ using Remora.Discord.API.Abstractions.Objects;
 
 namespace FrogBot.Voting;
 
-public class VoteEmojiProvider : IVoteEmojiProvider
+public class VoteEmojiProvider(IOptions<VoteOptions> voteOptions) : IVoteEmojiProvider
 {
-    private readonly IOptions<VoteOptions> _voteOptions;
-
-    public VoteEmojiProvider(IOptions<VoteOptions> voteOptions)
-    {
-        _voteOptions = voteOptions;
-    }
-
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public string? GetEmoji(VoteType type)
     {
         return type switch
         {
-            VoteType.Upvote => _voteOptions.Value.BotUpvoteEmoji,
-            VoteType.Downvote => _voteOptions.Value.BotDownvoteEmoji,
+            VoteType.Upvote => voteOptions.Value.BotUpvoteEmoji,
+            VoteType.Downvote => voteOptions.Value.BotDownvoteEmoji,
             _ => null
         };
     }
 
     public VoteType? GetVoteTypeFromEmoji(IPartialEmoji emoji)
     {
-        var options = _voteOptions.Value;
+        var options = voteOptions.Value;
         string? emojiId;
 
         // why is this even possible?

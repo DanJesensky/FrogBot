@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.TikTok;
 using FrogBot.Voting;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
@@ -14,49 +15,46 @@ using Remora.Results;
 
 namespace FrogBot.Responders;
 
-public class MessageVoteCreationResponder : IResponder<IMessageCreate>
+[UsedImplicitly]
+public partial class MessageVoteCreationResponder(
+    ILogger<MessageVoteCreationResponder> logger,
+    IOptions<VoteOptions> voteOptions,
+    IDiscordRestChannelAPI messageApi,
+    ITikTokQuarantineManager tikTokQuarantine)
+    : IResponder<IMessageCreate>
 {
-    private static readonly Regex _linkRegex = new("https??://", RegexOptions.Compiled | RegexOptions.Multiline | RegexOptions.IgnoreCase);
-    private readonly ILogger<MessageVoteCreationResponder> _logger;
-    private readonly IOptions<VoteOptions> _voteOptions;
-    private readonly IDiscordRestChannelAPI _messageApi;
-    private readonly ITikTokQuarantineManager _tikTokQuarantine;
-
-    public MessageVoteCreationResponder(ILogger<MessageVoteCreationResponder> logger, IOptions<VoteOptions> voteOptions, IDiscordRestChannelAPI messageApi, ITikTokQuarantineManager tikTokQuarantine)
-    {
-        _logger = logger;
-        _voteOptions = voteOptions;
-        _messageApi = messageApi;
-        _tikTokQuarantine = tikTokQuarantine;
-    }
+    private static readonly Regex LinkRegex = GenerateLinkRegex();
 
     public async Task<Result> RespondAsync(IMessageCreate gatewayEvent, CancellationToken ct = default)
     {
-        var author = _tikTokQuarantine.GetSubstituteQuarantineAuthor(gatewayEvent);
+        var author = tikTokQuarantine.GetSubstituteQuarantineAuthor(gatewayEvent);
         if (author.IsBot.HasValue && author.IsBot.Value)
         {
             return Result.FromSuccess();
         }
 
-        if (!shouldAddReactions(gatewayEvent))
+        if (!ShouldAddReactions(gatewayEvent))
         {
             return Result.FromSuccess();
         }
 
         // Not invoking these simultaneously because they may be out of order, which can be confusing
-        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotUpvoteEmoji, ct);
-        await _messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, _voteOptions.Value.BotDownvoteEmoji, ct);
+        await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, voteOptions.Value.BotUpvoteEmoji, ct);
+        await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.ID, voteOptions.Value.BotDownvoteEmoji, ct);
 
-        _logger.LogDebug("Added bot reactions to message {messageId}", gatewayEvent.ID);
+        logger.LogDebug("Added bot reactions to message {messageId}", gatewayEvent.ID);
         return Result.FromSuccess();
     }
 
-    private static bool shouldAddReactions(IMessage message)
+    private static bool ShouldAddReactions(IMessage message)
     {
         var content = message.Content;
         return message.Attachments.Any()
-               || _linkRegex.IsMatch(content)
+               || LinkRegex.IsMatch(content)
                || (content.Contains("!v")
                    && !content.Equals("!version"));
     }
+
+    [GeneratedRegex("https??://", RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled, "en-US")]
+    private static partial Regex GenerateLinkRegex();
 }

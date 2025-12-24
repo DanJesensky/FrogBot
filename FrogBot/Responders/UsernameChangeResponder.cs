@@ -8,18 +8,11 @@ using Remora.Results;
 
 namespace FrogBot.Responders;
 
-public class UsernameChangeResponder : IResponder<IUserUpdate>
+public class UsernameChangeResponder(IUsernameCachingService usernameCache) : IResponder<IUserUpdate>
 {
-    private readonly IUsernameCachingService _usernameCache;
-
-    public UsernameChangeResponder(IUsernameCachingService usernameCache)
-    {
-        _usernameCache = usernameCache;
-    }
-
     public async Task<Result> RespondAsync(IUserUpdate gatewayEvent, CancellationToken ct = new())
     {
-        await _usernameCache.UpdateCachedUsernameAsync(gatewayEvent.ID.Value, gatewayEvent.GetFullUsername(), ct);
+        await usernameCache.UpdateCachedUsernameAsync(gatewayEvent.ID.Value, gatewayEvent.GetFullUsername(), ct);
         return Result.FromSuccess();
     }
 }

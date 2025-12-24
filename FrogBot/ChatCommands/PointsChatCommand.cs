@@ -3,23 +3,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FrogBot.Voting;
+using JetBrains.Annotations;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Results;
 
 namespace FrogBot.ChatCommands;
 
-public class PointsChatCommand : IChatCommand
+[UsedImplicitly]
+public class PointsChatCommand(IDiscordRestChannelAPI channelApi, IVoteManager voteManager)
+    : IChatCommand
 {
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IVoteManager _voteManager;
-
-    public PointsChatCommand(IDiscordRestChannelAPI channelApi, IVoteManager voteManager)
-    {
-        _channelApi = channelApi;
-        _voteManager = voteManager;
-    }
-
     public bool CanHandleCommand(IMessage message) =>
         // ReSharper disable once StringLiteralTypo
         message.Content.StartsWith("!points") || message.Content.StartsWith("!pointys");
@@ -44,11 +38,11 @@ public class PointsChatCommand : IChatCommand
         var sb = new StringBuilder();
         foreach (var target in targets)
         {
-            var votes = await _voteManager.GetScoreAsync(target);
+            var votes = await voteManager.GetScoreAsync(target);
             sb.Append("<@").Append(target).Append(">: ").Append(votes).Append(" points").AppendLine();
         }
 
-        await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
+        await channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
         return Result.FromSuccess();
     }
 }

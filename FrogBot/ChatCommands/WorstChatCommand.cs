@@ -10,25 +10,18 @@ using Remora.Results;
 
 namespace FrogBot.ChatCommands;
 
-public class WorstChatCommand : IChatCommand
+public class WorstChatCommand(
+    VoteDbContext dbContext,
+    IDiscordRestChannelAPI channelApi,
+    IUsernameCachingService usernameCache)
+    : IChatCommand
 {
-    private readonly VoteDbContext _dbContext;
-    private readonly IDiscordRestChannelAPI _channelApi;
-    private readonly IUsernameCachingService _usernameCache;
-
-    public WorstChatCommand(VoteDbContext dbContext, IDiscordRestChannelAPI channelApi, IUsernameCachingService usernameCache)
-    {
-        _dbContext = dbContext;
-        _channelApi = channelApi;
-        _usernameCache = usernameCache;
-    }
-
     public bool CanHandleCommand(IMessage message) =>
         message.Content.StartsWith("!worst");
 
     public async Task<Result> HandleCommandAsync(IMessage message)
     {
-        var channel = await _channelApi.GetChannelAsync(message.ChannelID);
+        var channel = await channelApi.GetChannelAsync(message.ChannelID);
         var isGuildMessage = channel.Entity.GuildID.HasValue;
 
         // Default to 1, allow a requested maximum of 10
@@ -36,14 +29,14 @@ public class WorstChatCommand : IChatCommand
         _ = int.TryParse(requestedCount, out var parsedRequestedCount);
         var count = Math.Max(1, Math.Min(parsedRequestedCount, 10));
 
-        var topPoints = await _dbContext.Votes.AsNoTracking()
+        var topPoints = await dbContext.Votes.AsNoTracking()
             .GroupBy(v => v.ReceiverId)
             .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
             .OrderBy(v => v.Total)
             .Take(count)
             .ToArrayAsync();
 
-        var index = await _dbContext.Votes
+        var index = await dbContext.Votes
             .Select(v => v.ReceiverId)
             .Distinct()
             .CountAsync();
@@ -53,7 +46,7 @@ public class WorstChatCommand : IChatCommand
         {
             if (isGuildMessage)
             {
-                var username = await _usernameCache.GetCachedUsernameAsync(top.Id);
+                var username = await usernameCache.GetCachedUsernameAsync(top.Id);
                 sb.Append(index--).Append(". ").Append(username).Append(": ").Append(top.Total).Append(" points").AppendLine();
             }
             else
@@ -64,11 +57,11 @@ public class WorstChatCommand : IChatCommand
 
         if (sb.Length == 0)
         {
-            await _channelApi.CreateMessageAsync(message.ChannelID, "There are no eligible users to display.");
+            await channelApi.CreateMessageAsync(message.ChannelID, "There are no eligible users to display.");
         }
         else
         {
-            await _channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
+            await channelApi.CreateMessageAsync(message.ChannelID, sb.ToString());
         }
         return Result.FromSuccess();
     }

@@ -6,27 +6,18 @@ using Microsoft.Extensions.Logging;
 
 namespace FrogBot.Voting;
 
-public class VoteManager : IVoteManager
+public class VoteManager(VoteDbContext dbContext, ILogger<VoteManager> logger) : IVoteManager
 {
-    private readonly VoteDbContext _dbContext;
-    private readonly ILogger<VoteManager> _logger;
-
-    public VoteManager(VoteDbContext dbContext, ILogger<VoteManager> logger)
-    {
-        _dbContext = dbContext;
-        _logger = logger;
-    }
-
     public async Task AddVoteAsync(ulong channel, ulong message, ulong author, ulong voter, VoteType type)
     {
-        if (await _dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter))
+        if (await dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter))
         {
             return;
         }
 
         try
         {
-            _ = await _dbContext.Votes.AddAsync(new Vote
+            _ = await dbContext.Votes.AddAsync(new Vote
             {
                 ChannelId = channel,
                 MessageId = message,
@@ -34,11 +25,11 @@ public class VoteManager : IVoteManager
                 VoterId = voter,
                 VoteType = type
             });
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError(ex, "Could not add vote for message {message} in channel {channel}", message, channel);
+            logger.LogError(ex, "Could not add vote for message {message} in channel {channel}", message, channel);
         }
     }
 
@@ -53,14 +44,14 @@ public class VoteManager : IVoteManager
             VoteType = type
         };
 
-        if (!await _dbContext.Votes.ContainsAsync(vote))
+        if (!await dbContext.Votes.ContainsAsync(vote))
         {
             return;
         }
 
         try
         {
-            _ = _dbContext.Votes.Remove(new Vote
+            _ = dbContext.Votes.Remove(new Vote
             {
                 ChannelId = channel,
                 MessageId = message,
@@ -68,59 +59,59 @@ public class VoteManager : IVoteManager
                 VoterId = voter,
                 VoteType = type
             });
-            await _dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError(ex, "Could not add vote for message {message} in channel {channel}", message, channel);
+            logger.LogError(ex, "Could not add vote for message {message} in channel {channel}", message, channel);
         }
     }
 
     public async Task RemoveAllVotesAsync(ulong channel, ulong message)
     {
-        var votes = _dbContext.Votes.Where(vote => vote.ChannelId == channel && vote.MessageId == message);
+        var votes = dbContext.Votes.Where(vote => vote.ChannelId == channel && vote.MessageId == message);
 
         if (!votes.Any())
         {
-            _logger.LogTrace("No votes to delete for message {message} in channel {channel}.", message, channel);
+            logger.LogTrace("No votes to delete for message {message} in channel {channel}.", message, channel);
             return;
         }
 
         try
         {
-            _dbContext.Votes.RemoveRange(votes);
-            await _dbContext.SaveChangesAsync();
+            dbContext.Votes.RemoveRange(votes);
+            await dbContext.SaveChangesAsync();
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogError(ex, "Failed to delete votes for message {message} in {channel}", message, channel);
+            logger.LogError(ex, "Failed to delete votes for message {message} in {channel}", message, channel);
         }
     }
 
     public async Task<IEnumerable<Vote>> GetMessageVotesAsync(ulong channel, ulong message) =>
-        await _dbContext.Votes
+        await dbContext.Votes
             .AsNoTracking()
             .Where(vote =>
                 vote.ChannelId == channel
                 && vote.MessageId == message
-                && !_dbContext.BannedVoters.AsNoTracking().Any(u => u.UserId == vote.VoterId))
+                && !dbContext.BannedVoters.AsNoTracking().Any(u => u.UserId == vote.VoterId))
             .ToArrayAsync();
 
     public async Task<long> GetScoreAsync(ulong userId) =>
-        await _dbContext.Votes
+        await dbContext.Votes
             .AsNoTracking()
             .Where(v =>
                 v.ReceiverId == userId 
-                && !_dbContext.BannedVoters.AsNoTracking().Any(user => user.UserId == v.VoterId))
+                && !dbContext.BannedVoters.AsNoTracking().Any(user => user.UserId == v.VoterId))
             .SumAsync(v => (int)v.VoteType);
 
     public async Task RemoveVotesAsync(ulong channel, ulong message, VoteType type)
     {
-        var votesToRemove = _dbContext.Votes
+        var votesToRemove = dbContext.Votes
             .AsNoTracking()
             .Where(vote => vote.ChannelId == channel && vote.MessageId == message && vote.VoteType == type);
 
-        _dbContext.Votes.RemoveRange(votesToRemove);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Votes.RemoveRange(votesToRemove);
+        await dbContext.SaveChangesAsync();
     }
 }

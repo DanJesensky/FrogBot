@@ -8,7 +8,6 @@ using FrogBot.Responders;
 using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,8 +16,6 @@ using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
-using Remora.Discord.Rest;
-using Remora.Discord.Rest.Extensions;
 
 namespace FrogBot;
 

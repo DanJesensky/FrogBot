@@ -9,27 +9,18 @@ using Remora.Rest.Core;
 
 namespace FrogBot.Voting;
 
-public class UsernameCachingService : IUsernameCachingService
+public class UsernameCachingService(VoteDbContext dbContext, IDiscordRestUserAPI userApi) : IUsernameCachingService
 {
-    private readonly VoteDbContext _dbContext;
-    private readonly IDiscordRestUserAPI _userApi;
-
-    public UsernameCachingService(VoteDbContext dbContext, IDiscordRestUserAPI userApi)
-    {
-        _dbContext = dbContext;
-        _userApi = userApi;
-    }
-
     public async Task<string> GetCachedUsernameAsync(ulong userId, CancellationToken ct = default)
     {
-        var usernameCache = await _dbContext.CachedUsernames
+        var usernameCache = await dbContext.CachedUsernames
             .FirstOrDefaultAsync(user => user.UserId == userId, ct);
         if (usernameCache != null)
         {
             return usernameCache.Username;
         }
 
-        var fetchUserResult = await _userApi.GetUserAsync(new Snowflake(userId), ct);
+        var fetchUserResult = await userApi.GetUserAsync(new Snowflake(userId), ct);
         if (!fetchUserResult.IsSuccess)
         {
             throw new ArgumentException("User ID is invalid.", nameof(userId));
@@ -45,13 +36,13 @@ public class UsernameCachingService : IUsernameCachingService
 
     public async Task UpdateCachedUsernameAsync(ulong userId, string username, CancellationToken ct = default)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(ct);
-        var cachedUser = await _dbContext.CachedUsernames
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(ct);
+        var cachedUser = await dbContext.CachedUsernames
             .FirstOrDefaultAsync(cachedUser => cachedUser.UserId == userId, ct);
 
         if (cachedUser == null)
         {
-            await _dbContext.CachedUsernames.AddAsync(new CachedUsername
+            await dbContext.CachedUsernames.AddAsync(new CachedUsername
             {
                 UserId = userId,
                 Username = username
@@ -62,7 +53,7 @@ public class UsernameCachingService : IUsernameCachingService
             cachedUser.Username = username;
         }
 
-        await _dbContext.SaveChangesAsync(ct);
+        await dbContext.SaveChangesAsync(ct);
         await transaction.CommitAsync(ct);
     }
 }
