@@ -23,7 +23,7 @@ public class MessageEditResponder(ITikTokQuarantineResponder quarantine, IDiscor
         }
         else
         {
-            var messageFetch = await channel.GetChannelMessageAsync(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value, ct);
+            var messageFetch = await channel.GetChannelMessageAsync(gatewayEvent.ChannelID, gatewayEvent.ID, ct);
             if (messageFetch is { IsSuccess: false })
             {
                 return Result.FromError<string>("Message does not exist.");

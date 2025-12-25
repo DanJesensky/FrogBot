@@ -25,8 +25,8 @@ public class VoteUnbanCommandTests
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
 
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null);
-        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null);
+        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
+        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
 
         var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
@@ -51,9 +51,9 @@ public class VoteUnbanCommandTests
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
 
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null);
-        var targetUser1 = new UserMention(new Snowflake(9999L), "admin", 1234, null);
-        var targetUser2 = new UserMention(new Snowflake(9998L), "admin", 4321, null);
+        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
+        var targetUser1 = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
+        var targetUser2 = new UserMention(new Snowflake(9998L), "admin", 4321, null, new ImageHash("zzz"));
 
         var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
@@ -79,8 +79,8 @@ public class VoteUnbanCommandTests
     public async Task HandleCommandAsync_UserNotBanned_LogsError()
     {
         var dbContext = TestHelpers.CreateVoteDbContext();
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null);
-        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null);
+        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
+        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
 
         var messageCreateEventMock = new Mock<IMessage>();
         messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
