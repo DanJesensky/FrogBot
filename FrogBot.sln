@@ -8,7 +8,7 @@ ProjectSection(SolutionItems) = preProject
 	docker-compose.yml = docker-compose.yml
 	.gitignore = .gitignore
 	SolutionAssemblyInfo.cs = SolutionAssemblyInfo.cs
-	gitversion.yml = gitversion.yml
+	GitVersion.yml = GitVersion.yml
 EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{B3B72DBB-1D6E-44CE-965E-F877573E2159}"
