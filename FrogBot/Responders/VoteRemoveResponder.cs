@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.TikTok;
 using FrogBot.Voting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.Gateway.Responders;
@@ -11,6 +12,7 @@ using Remora.Results;
 namespace FrogBot.Responders;
 
 public class VoteRemoveResponder(
+    ILogger<VoteRemoveResponder> logger,
     IVoteManager voteManager,
     IMessageRetriever channelApi,
     IVoteEmojiProvider voteEmojiProvider,
@@ -35,6 +37,7 @@ public class VoteRemoveResponder(
 
         if (DateTimeOffset.UtcNow - message.Timestamp > voteOptions.Value.MaximumMessageAge)
         {
+            logger.LogDebug("Ignoring vote removal on old message {messageId}", gatewayEvent.MessageID);
             return Result.FromSuccess();
         }
 

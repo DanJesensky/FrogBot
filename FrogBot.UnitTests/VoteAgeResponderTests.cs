@@ -91,6 +91,7 @@ public class VoteAgeResponderTests
         messageRetriever.Setup(r => r.RetrieveMessageAsync(@event.ChannelID, @event.MessageID, default)).ReturnsAsync(message);
 
         var sut = new VoteRemoveResponder(
+            Mock.Of<ILogger<VoteRemoveResponder>>(),
             voteManager.Object,
             messageRetriever.Object,
             voteEmojiProvider.Object,
@@ -122,6 +123,7 @@ public class VoteAgeResponderTests
         quarantine.Setup(q => q.GetSubstituteQuarantineAuthor(message)).Returns(author);
 
         var sut = new VoteRemoveResponder(
+            Mock.Of<ILogger<VoteRemoveResponder>>(),
             voteManager.Object,
             messageRetriever.Object,
             voteEmojiProvider.Object,
