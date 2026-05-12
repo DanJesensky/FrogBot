@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.Responders;
@@ -40,6 +41,33 @@ public class VoteAddResponderTests
         message.Setup(m => m.ChannelID).Returns(new Snowflake(ChannelId));
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
+        return message.Object;
+    }
+
+    private static IMessage CreateMessageWithBotReactions(IUser author)
+    {
+        var upvotePartialEmoji = new Mock<IPartialEmoji>();
+        upvotePartialEmoji.Setup(e => e.Name).Returns(new Optional<string?>(UpvoteEmoji));
+
+        var downvotePartialEmoji = new Mock<IPartialEmoji>();
+        downvotePartialEmoji.Setup(e => e.Name).Returns(new Optional<string?>(DownvoteEmoji));
+
+        var upvoteReaction = new Mock<IReaction>();
+        upvoteReaction.Setup(r => r.Emoji).Returns(upvotePartialEmoji.Object);
+        upvoteReaction.Setup(r => r.HasCurrentUserReacted).Returns(true);
+
+        var downvoteReaction = new Mock<IReaction>();
+        downvoteReaction.Setup(r => r.Emoji).Returns(downvotePartialEmoji.Object);
+        downvoteReaction.Setup(r => r.HasCurrentUserReacted).Returns(true);
+
+        IReadOnlyList<IReaction> reactions = [upvoteReaction.Object, downvoteReaction.Object];
+
+        var message = new Mock<IMessage>();
+        message.Setup(m => m.Author).Returns(author);
+        message.Setup(m => m.ChannelID).Returns(new Snowflake(ChannelId));
+        message.Setup(m => m.Mentions).Returns([]);
+        message.Setup(m => m.Content).Returns(string.Empty);
+        message.Setup(m => m.Reactions).Returns(new Optional<IReadOnlyList<IReaction>>(reactions));
         return message.Object;
     }
 
@@ -333,5 +361,39 @@ public class VoteAddResponderTests
             It.IsAny<ulong>(),
             It.IsAny<ulong>(),
             It.IsAny<VoteType>()), Times.Never);
+    }
+
+    [Test]
+    [TestCase(VoteType.Upvote)]
+    [TestCase(VoteType.Downvote)]
+    public async Task RespondAsync_BotReactionsAlreadyPresent_DoesNotAddReactions(VoteType voteType)
+    {
+        var voter = CreateUser(VoterId);
+        var author = CreateUser(AuthorId);
+        var message = CreateMessageWithBotReactions(author);
+
+        var messageRetriever = new Mock<IMessageRetriever>();
+        messageRetriever.Setup(r => r.RetrieveMessageAsync(It.IsAny<Snowflake>(), It.IsAny<Snowflake>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(message);
+
+        var voteManager = new Mock<IVoteManager>();
+        voteManager.Setup(v => v.IsVoterBannedAsync(VoterId)).ReturnsAsync(false);
+
+        var channelApi = CreateChannelApiMock();
+
+        var sut = CreateResponder(
+            voteManager: voteManager.Object,
+            messageRetriever: messageRetriever.Object,
+            voteEmojiProvider: CreateVoteEmojiProvider(voteType),
+            quarantine: CreateQuarantineManager(author),
+            channelApi: channelApi.Object);
+
+        await sut.RespondAsync(CreateReactionEvent(voter));
+
+        channelApi.Verify(a => a.CreateReactionAsync(
+            It.IsAny<Snowflake>(),
+            It.IsAny<Snowflake>(),
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()), Times.Never);
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.TikTok;
@@ -5,8 +6,10 @@ using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
+using Remora.Rest.Core;
 using Remora.Results;
 
 namespace FrogBot.Responders;
@@ -90,9 +93,10 @@ public class VoteAddResponder(
             gatewayEvent.UserID.Value, voteType.Value);
 
         // Ensure both vote reactions exist on the message so users can vote in either direction.
+        // Only add reactions that the bot hasn't already placed to avoid redundant REST calls.
         var upvoteEmoji = voteEmojiProvider.GetEmoji(VoteType.Upvote);
         var downvoteEmoji = voteEmojiProvider.GetEmoji(VoteType.Downvote);
-        if (upvoteEmoji is not null)
+        if (upvoteEmoji is not null && !HasBotReaction(message, upvoteEmoji))
         {
             var upvoteResult = await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, upvoteEmoji, ct);
             if (!upvoteResult.IsSuccess)
@@ -100,7 +104,7 @@ public class VoteAddResponder(
                 logger.LogWarning("Failed to add upvote reaction to message {messageId}: {error}", gatewayEvent.MessageID, upvoteResult.Error);
             }
         }
-        if (downvoteEmoji is not null)
+        if (downvoteEmoji is not null && !HasBotReaction(message, downvoteEmoji))
         {
             var downvoteResult = await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, downvoteEmoji, ct);
             if (!downvoteResult.IsSuccess)
@@ -110,5 +114,30 @@ public class VoteAddResponder(
         }
 
         return Result.FromSuccess();
+    }
+
+    /// <summary>
+    /// Returns true if the bot (current user) has already placed the given emoji reaction on the message.
+    /// </summary>
+    private static bool HasBotReaction(IMessage message, string emojiString)
+    {
+        if (!message.Reactions.HasValue)
+            return false;
+
+        return message.Reactions.Value.Any(r =>
+            r.HasCurrentUserReacted && MatchesEmoji(r.Emoji, emojiString));
+    }
+
+    private static bool MatchesEmoji(IPartialEmoji emoji, string emojiString)
+    {
+        // Custom emoji: string format is "name:id" — compare by numeric ID.
+        if (emoji.ID.HasValue && emoji.ID.Value is Snowflake snowflake)
+        {
+            var idStr = snowflake.Value.ToString();
+            return emojiString.EndsWith($":{idStr}") || emojiString == idStr;
+        }
+
+        // Unicode emoji: compare by name.
+        return emoji.Name.HasValue && emoji.Name.Value == emojiString;
     }
 }
