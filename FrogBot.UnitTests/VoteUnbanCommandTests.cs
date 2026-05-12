@@ -39,13 +39,40 @@ public class VoteUnbanCommandTests
     private static IFeedbackService CreateFeedbackService()
     {
         var feedback = new Mock<IFeedbackService>();
+        var successResult = Result<IReadOnlyList<IMessage>>.FromSuccess([]);
+
         feedback
             .Setup(f => f.SendContextualNeutralAsync(
                 It.IsAny<string>(),
                 It.IsAny<Snowflake?>(),
                 It.IsAny<FeedbackMessageOptions?>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<IReadOnlyList<IMessage>>.FromSuccess([]));
+            .ReturnsAsync(successResult);
+
+        feedback
+            .Setup(f => f.SendContextualSuccessAsync(
+                It.IsAny<string>(),
+                It.IsAny<Snowflake?>(),
+                It.IsAny<FeedbackMessageOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(successResult);
+
+        feedback
+            .Setup(f => f.SendContextualErrorAsync(
+                It.IsAny<string>(),
+                It.IsAny<Snowflake?>(),
+                It.IsAny<FeedbackMessageOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(successResult);
+
+        feedback
+            .Setup(f => f.SendContextualAsync(
+                It.IsAny<string>(),
+                It.IsAny<Snowflake?>(),
+                It.IsAny<FeedbackMessageOptions?>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(successResult);
+
         return feedback.Object;
     }
 

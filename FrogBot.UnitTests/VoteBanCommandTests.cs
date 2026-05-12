@@ -39,13 +39,18 @@ public class VoteBanCommandTests
     private static IFeedbackService CreateFeedbackService()
     {
         var feedback = new Mock<IFeedbackService>();
+        var successResult = Result<IReadOnlyList<IMessage>>.FromSuccess([]);
+
+        feedback.SetReturnsDefault(Task.FromResult(successResult));
+
         feedback
             .Setup(f => f.SendContextualNeutralAsync(
                 It.IsAny<string>(),
                 It.IsAny<Snowflake?>(),
                 It.IsAny<FeedbackMessageOptions?>(),
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result<IReadOnlyList<IMessage>>.FromSuccess([]));
+            .ReturnsAsync(successResult);
+
         return feedback.Object;
     }
 
