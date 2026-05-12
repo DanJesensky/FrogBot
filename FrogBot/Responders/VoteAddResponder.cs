@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FrogBot.TikTok;
@@ -13,6 +14,7 @@ namespace FrogBot.Responders;
 public class VoteAddResponder(
     ILogger<VoteAddResponder> logger,
     IOptions<FrogBotOptions> botOptions,
+    IOptions<VoteOptions> voteOptions,
     IVoteManager voteManager,
     IMessageRetriever messageRetriever,
     IVoteEmojiProvider voteEmojiProvider,
@@ -45,6 +47,12 @@ public class VoteAddResponder(
             logger.LogError("Failed to record vote type {voteType} for message {messageId}: the message does not exist.", voteType, gatewayEvent.MessageID);
             await voteManager.RemoveAllVotesAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value);
             return Result.FromError<string>("Message does not exist.");
+        }
+
+        if (DateTimeOffset.UtcNow - message.Timestamp > voteOptions.Value.MaximumMessageAge)
+        {
+            logger.LogDebug("Ignoring vote on old message {messageId}", gatewayEvent.MessageID);
+            return Result.FromSuccess();
         }
 
         // Users can't vote on bots, except for in the TikTok quarantine.
