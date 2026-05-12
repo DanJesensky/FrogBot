@@ -149,7 +149,7 @@ public partial class AdminCommands(
     }
     
     private async Task<IResult> SendAdminError() =>
-        await feedback.SendContextualAsync("Sorry, you're not allowed to do that.", ct: CancellationToken);
+        await feedback.SendContextualErrorAsync("Sorry, you're not allowed to do that.", ct: CancellationToken);
 
     [GeneratedRegex("(?<fullEmoji><:(?:[^:]+):(?<id>\\d+)>)", RegexOptions.Compiled)]
     private static partial Regex GenerateEmojiRegex();
