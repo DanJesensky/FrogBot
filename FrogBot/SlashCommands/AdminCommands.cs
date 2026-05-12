@@ -32,18 +32,6 @@ public partial class AdminCommands(
 
     private static readonly Regex EmojiRegex = GenerateEmojiRegex();
 
-    [Command("test")]
-    [Description("Test that the bot is responding")]
-    public async Task<IResult> TestAsync()
-    {
-        if (!IsAdmin())
-        {
-            return await SendAdminError();
-        }
-
-        return await feedback.SendContextualSuccessAsync("✅", ct: CancellationToken);
-    }
-
     [Command("say")]
     [Description("Send a message to another channel")]
     public async Task<IResult> SayAsync(

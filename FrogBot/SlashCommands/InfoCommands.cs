@@ -11,6 +11,13 @@ namespace FrogBot.SlashCommands;
 [UsedImplicitly]
 public class InfoCommands(IFeedbackService feedback) : CommandGroup
 {
+    [Command("test")]
+    [Description("Test that the bot is responding")]
+    public async Task<IResult> TestAsync()
+    {
+        return await feedback.SendContextualSuccessAsync("✅", ct: CancellationToken);
+    }
+
     [Command("version")]
     [Description("Show the bot version")]
     public async Task<IResult> VersionAsync() =>
