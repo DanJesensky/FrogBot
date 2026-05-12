@@ -114,4 +114,7 @@ public class VoteManager(VoteDbContext dbContext, ILogger<VoteManager> logger) :
         dbContext.Votes.RemoveRange(votesToRemove);
         await dbContext.SaveChangesAsync();
     }
+
+    public async Task<bool> IsVoterBannedAsync(ulong voter) =>
+        await dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter);
 }

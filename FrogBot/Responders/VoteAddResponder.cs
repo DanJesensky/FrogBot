@@ -5,6 +5,7 @@ using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Events;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
@@ -16,7 +17,8 @@ public class VoteAddResponder(
     IVoteManager voteManager,
     IMessageRetriever messageRetriever,
     IVoteEmojiProvider voteEmojiProvider,
-    ITikTokQuarantineManager quarantine)
+    ITikTokQuarantineManager quarantine,
+    IDiscordRestChannelAPI messageApi)
     : IResponder<IMessageReactionAdd>
 {
     public async Task<Result> RespondAsync(IMessageReactionAdd gatewayEvent, CancellationToken ct = default)
@@ -77,8 +79,35 @@ public class VoteAddResponder(
             return Result.FromSuccess();
         }
 
+        // Banned voters don't count and shouldn't trigger bot reactions.
+        if (await voteManager.IsVoterBannedAsync(gatewayEvent.UserID.Value))
+        {
+            logger.LogDebug("Ignoring vote from banned voter {userId} on message {messageId}", gatewayEvent.UserID, gatewayEvent.MessageID);
+            return Result.FromSuccess();
+        }
+
         await voteManager.AddVoteAsync(gatewayEvent.ChannelID.Value, gatewayEvent.MessageID.Value, author.ID.Value,
             gatewayEvent.UserID.Value, voteType.Value);
+
+        // Ensure both vote reactions exist on the message so users can vote in either direction.
+        var upvoteEmoji = voteEmojiProvider.GetEmoji(VoteType.Upvote);
+        var downvoteEmoji = voteEmojiProvider.GetEmoji(VoteType.Downvote);
+        if (upvoteEmoji is not null)
+        {
+            var upvoteResult = await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, upvoteEmoji, ct);
+            if (!upvoteResult.IsSuccess)
+            {
+                logger.LogWarning("Failed to add upvote reaction to message {messageId}: {error}", gatewayEvent.MessageID, upvoteResult.Error);
+            }
+        }
+        if (downvoteEmoji is not null)
+        {
+            var downvoteResult = await messageApi.CreateReactionAsync(gatewayEvent.ChannelID, gatewayEvent.MessageID, downvoteEmoji, ct);
+            if (!downvoteResult.IsSuccess)
+            {
+                logger.LogWarning("Failed to add downvote reaction to message {messageId}: {error}", gatewayEvent.MessageID, downvoteResult.Error);
+            }
+        }
 
         return Result.FromSuccess();
     }
