@@ -82,15 +82,15 @@ public class VotingCommands(
             .Take(count)
             .ToArrayAsync(CancellationToken);
 
-        var totalUsers = await dbContext.AdjustedVotes
-            .Select(v => v.ReceiverId)
-            .Distinct()
-            .CountAsync(CancellationToken);
-
         if (worstPoints.Length == 0)
         {
             return await feedback.SendContextualNeutralAsync("There are no eligible users to display.", ct: CancellationToken);
         }
+
+        var totalUsers = await dbContext.AdjustedVotes
+            .Select(v => v.ReceiverId)
+            .Distinct()
+            .CountAsync(CancellationToken);
 
         var index = totalUsers;
         var sb = new StringBuilder();
@@ -132,6 +132,11 @@ public class VotingCommands(
             }
         }
         else
+        {
+            return Result.FromError(new InvalidOperationError("Could not determine the invoking user."));
+        }
+
+        if (targetId == 0)
         {
             return Result.FromError(new InvalidOperationError("Could not determine the invoking user."));
         }
