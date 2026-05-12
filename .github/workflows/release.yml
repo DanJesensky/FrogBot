@@ -42,8 +42,7 @@ jobs:
     - name: Start SonarScanner
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet sonarscanner begin /k:"DanJesensky_FrogBot" /o:"danjesensky" /d:sonar.login="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths=.tests/*.trx /d:sonar.cs.opencover.reportsPaths=.tests/*/coverage.opencover.xml
+      run: dotnet sonarscanner begin /k:"DanJesensky_FrogBot" /o:"danjesensky" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.vstest.reportsPaths=.tests/*.trx /d:sonar.cs.opencover.reportsPaths=.tests/*/coverage.opencover.xml
 
     - name: Build
       run: dotnet build --no-restore -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
@@ -54,8 +53,7 @@ jobs:
     - name: End SonarScanner
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+      run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
 
     - name: Publish
       run: dotnet publish FrogBot/FrogBot.csproj --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
