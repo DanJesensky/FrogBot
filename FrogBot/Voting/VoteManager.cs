@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,9 +9,13 @@ namespace FrogBot.Voting;
 
 public class VoteManager(VoteDbContext dbContext, ILogger<VoteManager> logger) : IVoteManager
 {
+    // Transient cache: VoteManager is registered as transient, so this lives only for the
+    // duration of a single response chain and is discarded afterwards.
+    private readonly ConcurrentDictionary<ulong, bool> _bannedVoterCache = new();
+
     public async Task AddVoteAsync(ulong channel, ulong message, ulong author, ulong voter, VoteType type)
     {
-        if (await dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter))
+        if (await IsVoterBannedAsync(voter))
         {
             return;
         }
@@ -115,6 +120,15 @@ public class VoteManager(VoteDbContext dbContext, ILogger<VoteManager> logger) :
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<bool> IsVoterBannedAsync(ulong voter) =>
-        await dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter);
+    public async Task<bool> IsVoterBannedAsync(ulong voter)
+    {
+        if (_bannedVoterCache.TryGetValue(voter, out var cached))
+        {
+            return cached;
+        }
+
+        var isBanned = await dbContext.BannedVoters.AnyAsync(bannedUser => bannedUser.UserId == voter);
+        _bannedVoterCache.TryAdd(voter, isBanned);
+        return isBanned;
+    }
 }

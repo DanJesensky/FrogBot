@@ -1,6 +1,5 @@
 using System.Threading;
 using System.Threading.Tasks;
-using FluentAssertions;
 using FrogBot.Responders;
 using FrogBot.TikTok;
 using FrogBot.Voting;
@@ -183,8 +182,9 @@ public class VoteAddResponderTests
     {
         var voter = CreateUser(VoterId, isBot: true);
         var channelApi = CreateChannelApiMock();
+        var voteManager = new Mock<IVoteManager>();
 
-        var sut = CreateResponder(channelApi: channelApi.Object);
+        var sut = CreateResponder(voteManager: voteManager.Object, channelApi: channelApi.Object);
 
         await sut.RespondAsync(CreateReactionEvent(voter));
 
@@ -193,6 +193,13 @@ public class VoteAddResponderTests
             It.IsAny<Snowflake>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
+
+        voteManager.Verify(v => v.AddVoteAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<VoteType>()), Times.Never);
     }
 
     [Test]
@@ -207,8 +214,10 @@ public class VoteAddResponderTests
             .ReturnsAsync(message);
 
         var channelApi = CreateChannelApiMock();
+        var voteManager = new Mock<IVoteManager>();
 
         var sut = CreateResponder(
+            voteManager: voteManager.Object,
             messageRetriever: messageRetriever.Object,
             quarantine: CreateQuarantineManager(author),
             channelApi: channelApi.Object);
@@ -220,6 +229,13 @@ public class VoteAddResponderTests
             It.IsAny<Snowflake>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
+
+        voteManager.Verify(v => v.AddVoteAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<VoteType>()), Times.Never);
     }
 
     [Test]
@@ -235,8 +251,10 @@ public class VoteAddResponderTests
             .ReturnsAsync(message);
 
         var channelApi = CreateChannelApiMock();
+        var voteManager = new Mock<IVoteManager>();
 
         var sut = CreateResponder(
+            voteManager: voteManager.Object,
             messageRetriever: messageRetriever.Object,
             quarantine: CreateQuarantineManager(author),
             channelApi: channelApi.Object);
@@ -248,6 +266,13 @@ public class VoteAddResponderTests
             It.IsAny<Snowflake>(),
             It.IsAny<string>(),
             It.IsAny<CancellationToken>()), Times.Never);
+
+        voteManager.Verify(v => v.AddVoteAsync(
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<ulong>(),
+            It.IsAny<VoteType>()), Times.Never);
     }
 
     [Test]
