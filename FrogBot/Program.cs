@@ -44,11 +44,11 @@ public static class Program
         if (!updateResult.IsSuccess)
         {
             var logger = services.GetRequiredService<ILogger<SlashService>>();
-            logger.LogError("Failed to update slash commands: {error}", updateResult.Error);
+            logger.LogError("Failed to update slash commands: {Error}", updateResult.Error);
         }
 
         var client = services.GetRequiredService<DiscordGatewayClient>();
-        var cancellationSource = new CancellationTokenSource();
+        using var cancellationSource = new CancellationTokenSource();
         await client.RunAsync(cancellationSource.Token);
     }
 

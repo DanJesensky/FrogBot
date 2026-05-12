@@ -52,14 +52,14 @@ public class VotingCommands(
         var sb = new StringBuilder();
         foreach (var entry in topPoints)
         {
-            if (isGuildMessage || _useMentions)
+            if (_useMentions || !isGuildMessage)
             {
-                var username = await usernameCache.GetCachedUsernameAsync(entry.Id);
-                sb.Append(index++).Append("\\. ").Append(username).Append(": ").Append(entry.Total).Append(" points").AppendLine();
+                sb.Append(index++).Append("\\. <@").Append(entry.Id).Append(">: ").Append(entry.Total).Append(" points").AppendLine();
             }
             else
             {
-                sb.Append(index++).Append("\\. <@").Append(entry.Id).Append(">: ").Append(entry.Total).Append(" points").AppendLine();
+                var username = await usernameCache.GetCachedUsernameAsync(entry.Id);
+                sb.Append(index++).Append("\\. ").Append(username).Append(": ").Append(entry.Total).Append(" points").AppendLine();
             }
         }
 
@@ -82,7 +82,7 @@ public class VotingCommands(
             .Take(count)
             .ToArrayAsync(CancellationToken);
 
-        var totalUsers = await dbContext.Votes
+        var totalUsers = await dbContext.AdjustedVotes
             .Select(v => v.ReceiverId)
             .Distinct()
             .CountAsync(CancellationToken);
@@ -96,14 +96,14 @@ public class VotingCommands(
         var sb = new StringBuilder();
         foreach (var entry in worstPoints)
         {
-            if (isGuildMessage || _useMentions)
+            if (_useMentions || !isGuildMessage)
             {
-                var username = await usernameCache.GetCachedUsernameAsync(entry.Id);
-                sb.Append(index--).Append("\\. ").Append(username).Append(": ").Append(entry.Total).Append(" points").AppendLine();
+                sb.Append(index--).Append("\\. <@").Append(entry.Id).Append(">: ").Append(entry.Total).Append(" points").AppendLine();
             }
             else
             {
-                sb.Append(index--).Append("\\. <@").Append(entry.Id).Append(">: ").Append(entry.Total).Append(" points").AppendLine();
+                var username = await usernameCache.GetCachedUsernameAsync(entry.Id);
+                sb.Append(index--).Append("\\. ").Append(username).Append(": ").Append(entry.Total).Append(" points").AppendLine();
             }
         }
 
@@ -115,16 +115,21 @@ public class VotingCommands(
     public async Task<IResult> PointsAsync(
         [Description("User to check (defaults to yourself)")] IUser? user = null)
     {
-        ulong targetId;
+        ulong targetId = 0;
         if (user is not null)
         {
             targetId = user.ID.Value;
         }
         else if (context is IInteractionCommandContext ic)
         {
-            targetId = ic.Interaction.Member is { HasValue: true, Value.User.HasValue: true }
-                ? ic.Interaction.Member.Value.User.Value.ID.Value
-                : ic.Interaction.User.HasValue ? ic.Interaction.User.Value.ID.Value : 0;
+            if (ic.Interaction.Member is { HasValue: true, Value.User.HasValue: true })
+            {
+                targetId = ic.Interaction.Member.Value.User.Value.ID.Value;
+            }
+            else if (ic.Interaction.User.HasValue)
+            {
+                targetId = ic.Interaction.User.Value.ID.Value;
+            }
         }
         else
         {

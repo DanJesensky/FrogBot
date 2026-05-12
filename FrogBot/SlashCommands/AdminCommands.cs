@@ -80,7 +80,7 @@ public partial class AdminCommands(
         var bannedUser = new BannedVoter { UserId = user.ID.Value };
         if (await voteDbContext.BannedVoters.ContainsAsync(bannedUser, CancellationToken))
         {
-            logger.LogError("Cannot ban {username} ({id}) from voting: they are already banned.", user.Username, user.ID.Value);
+            logger.LogError("Cannot ban {Username} ({Id}) from voting: they are already banned.", user.Username, user.ID.Value);
             return await feedback.SendContextualErrorAsync($"❌ {user.Username} is already banned from voting.", ct: CancellationToken);
         }
 
@@ -88,7 +88,7 @@ public partial class AdminCommands(
         {
             voteDbContext.BannedVoters.Add(bannedUser);
             await voteDbContext.SaveChangesAsync(CancellationToken);
-            logger.LogInformation("{username} ({id}) was banned from voting.", user.Username, user.ID.Value);
+            logger.LogInformation("{Username} ({Id}) was banned from voting.", user.Username, user.ID.Value);
             return await feedback.SendContextualSuccessAsync($"✅ {user.Username} has been banned from voting.", ct: CancellationToken);
         }
         catch (Exception ex)
@@ -110,7 +110,7 @@ public partial class AdminCommands(
         var bannedUser = new BannedVoter { UserId = user.ID.Value };
         if (!await voteDbContext.BannedVoters.ContainsAsync(bannedUser, CancellationToken))
         {
-            logger.LogError("Cannot unban {username} ({id}) from voting: they are not banned.", user.Username, user.ID.Value);
+            logger.LogError("Cannot unban {Username} ({Id}) from voting: they are not banned.", user.Username, user.ID.Value);
             return await feedback.SendContextualErrorAsync($"❌ {user.Username} is not banned from voting.", ct: CancellationToken);
         }
 
@@ -118,7 +118,7 @@ public partial class AdminCommands(
         {
             voteDbContext.BannedVoters.Remove(bannedUser);
             await voteDbContext.SaveChangesAsync(CancellationToken);
-            logger.LogInformation("{username} ({id}) was unbanned from voting.", user.Username, user.ID.Value);
+            logger.LogInformation("{Username} ({Id}) was unbanned from voting.", user.Username, user.ID.Value);
             return await feedback.SendContextualSuccessAsync($"✅ {user.Username} has been unbanned from voting.", ct: CancellationToken);
         }
         catch (Exception ex)
@@ -135,9 +135,15 @@ public partial class AdminCommands(
             return false;
         }
 
-        var userId = ic.Interaction.Member is { HasValue: true, Value.User.HasValue: true }
-            ? ic.Interaction.Member.Value.User.Value.ID.Value
-            : ic.Interaction.User.HasValue ? ic.Interaction.User.Value.ID.Value : 0UL;
+        ulong userId = 0;
+        if (ic.Interaction.Member is { HasValue: true, Value.User.HasValue: true })
+        {
+            userId = ic.Interaction.Member.Value.User.Value.ID.Value;
+        }
+        else if (ic.Interaction.User.HasValue)
+        {
+            userId = ic.Interaction.User.Value.ID.Value;
+        }
 
         return userId == AdminUserId;
     }
