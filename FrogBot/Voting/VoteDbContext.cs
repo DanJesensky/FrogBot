@@ -1,3 +1,4 @@
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
 #nullable disable
@@ -10,6 +11,9 @@ public class VoteDbContext(DbContextOptions<VoteDbContext> options) : DbContext(
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Vote>().HasKey(vote => new { vote.ChannelId, vote.MessageId, vote.ReceiverId, vote.VoterId, vote.VoteType });
     }
+
+    public IQueryable<Vote> AdjustedVotes => Votes
+        .Where(v => !BannedVoters.Select(b => b.UserId).Contains(v.VoterId));
 
     public DbSet<Vote> Votes { get; set; }
 

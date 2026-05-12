@@ -1,10 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using FrogBot.ChatCommands;
 using FrogBot.Responders;
+using FrogBot.SlashCommands;
 using FrogBot.TikTok;
 using FrogBot.Voting;
 using Microsoft.EntityFrameworkCore;
@@ -14,8 +14,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Remora.Discord.API.Abstractions.Gateway.Commands;
+using Remora.Commands.Extensions;
+using Remora.Discord.Commands.Extensions;
+using Remora.Discord.Commands.Services;
 using Remora.Discord.Gateway;
 using Remora.Discord.Gateway.Extensions;
+using Remora.Rest.Core;
 
 namespace FrogBot;
 
@@ -32,6 +36,15 @@ public static class Program
             await using var db = services.GetRequiredService<VoteDbContext>();
             await db.Database.MigrateAsync();
             return;
+        }
+
+        var slashService = services.GetRequiredService<SlashService>();
+        var options = services.GetRequiredService<IOptions<FrogBotOptions>>().Value;
+        var updateResult = await slashService.UpdateSlashCommandsAsync(new Snowflake(options.ServerId));
+        if (!updateResult.IsSuccess)
+        {
+            var logger = services.GetRequiredService<ILogger<SlashService>>();
+            logger.LogError("Failed to update slash commands: {error}", updateResult.Error);
         }
 
         var client = services.GetRequiredService<DiscordGatewayClient>();
@@ -93,16 +106,12 @@ public static class Program
             .AddResponder<DeleteMessageResponder>()
             .AddResponder<UsernameChangeResponder>()
             .AddResponder<MessageEditResponder>()
-            .AddChatCommand<TestChatCommand>()
-            .AddChatCommand<SayCommand>()
-            .AddChatCommand<VersionCommand>()
-            .AddChatCommand<TopChatCommand>()
-            .AddChatCommand<WorstChatCommand>()
-            .AddChatCommand<PointsChatCommand>()
-            .AddChatCommand<EmojiIdCommand>()
-            .AddChatCommand<VoteBanCommand>()
-            .AddChatCommand<VoteUnbanCommand>()
-            .AddChatResponder<ChatCommandResponder>()
             .AddChatResponder<TikTokChatResponder>();
+
+        services.AddDiscordCommands(enableSlash: true);
+        services.AddCommandTree()
+            .WithCommandGroup<VotingCommands>()
+            .WithCommandGroup<AdminCommands>()
+            .WithCommandGroup<InfoCommands>();
     }
 }
