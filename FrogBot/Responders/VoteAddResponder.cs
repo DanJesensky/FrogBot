@@ -122,7 +122,9 @@ public class VoteAddResponder(
     private static bool HasBotReaction(IMessage message, string emojiString)
     {
         if (!message.Reactions.HasValue)
+        {
             return false;
+        }
 
         return message.Reactions.Value.Any(r =>
             r.HasCurrentUserReacted && MatchesEmoji(r.Emoji, emojiString));
