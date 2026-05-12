@@ -8,3 +8,4 @@ riderModule.iml
 .artifacts
 *.user
 .tests
+.sonarqube/
