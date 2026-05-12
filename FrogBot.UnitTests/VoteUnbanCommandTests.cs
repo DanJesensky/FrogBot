@@ -1,104 +1,96 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using FrogBot.ChatCommands;
+using FrogBot.SlashCommands;
 using FrogBot.Voting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
-using Remora.Discord.API.Objects;
+using Remora.Discord.Commands.Contexts;
+using Remora.Discord.Commands.Feedback.Messages;
+using Remora.Discord.Commands.Feedback.Services;
 using Remora.Rest.Core;
+using Remora.Results;
 
 namespace FrogBot.UnitTests;
 
 public class VoteUnbanCommandTests
 {
+    private static ICommandContext CreateAdminContext()
+    {
+        var user = new Mock<IUser>();
+        user.Setup(u => u.ID).Returns(new Snowflake(159870805390524416UL));
+
+        var member = new Mock<IGuildMember>();
+        member.Setup(m => m.User).Returns(new Optional<IUser>(user.Object));
+
+        var interaction = new Mock<IInteraction>();
+        interaction.Setup(i => i.Member).Returns(new Optional<IGuildMember>(member.Object));
+
+        var ctx = new Mock<IInteractionCommandContext>();
+        ctx.Setup(c => c.Interaction).Returns(interaction.Object);
+
+        return ctx.Object;
+    }
+
+    private static IFeedbackService CreateFeedbackService()
+    {
+        var feedback = new Mock<IFeedbackService>();
+        var successResult = Result<IReadOnlyList<IMessage>>.FromSuccess([]);
+
+        feedback.SetReturnsDefault(Task.FromResult(successResult));
+
+        return feedback.Object;
+    }
+
     [Test]
-    public async Task HandleCommandAsync_AddsBanToDbContext()
+    public async Task VoteUnbanAsync_RemovesBannedVoterFromDatabase()
     {
         var dbContext = TestHelpers.CreateVoteDbContext();
         dbContext.BannedVoters.Add(new BannedVoter { UserId = 9999L });
         await dbContext.SaveChangesAsync();
         dbContext.ChangeTracker.Clear();
 
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
-        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
+        var targetUser = Mock.Of<IUser>(u =>
+            u.ID == new Snowflake(9999L) &&
+            u.Username == "target");
 
-        var messageCreateEventMock = new Mock<IMessage>();
-        messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
-        messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
-        messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
-        messageCreateEventMock.Setup(m => m.Content).Returns("!voteunban <@9999>");
-        messageCreateEventMock.Setup(m => m.Mentions).Returns(new List<IUserMention> { targetUser });
+        var sut = new AdminCommands(
+            CreateFeedbackService(),
+            CreateAdminContext(),
+            Mock.Of<IDiscordRestChannelAPI>(),
+            dbContext,
+            Mock.Of<ILogger<AdminCommands>>());
 
-        dbContext.BannedVoters.Count().Should().Be(1);
-        var sut = new VoteUnbanCommand(dbContext, Mock.Of<IDiscordRestChannelAPI>(), Mock.Of<ILogger<VoteUnbanCommand>>());
-        await sut.HandleCommandAsync(messageCreateEventMock.Object);
+        await sut.VoteUnbanAsync(targetUser);
 
-        dbContext.BannedVoters.Count().Should().Be(0);
+        dbContext.BannedVoters.Should().BeEmpty();
     }
 
     [Test]
-    public async Task HandleCommandAsync_MultipleMentions_LogsError()
+    public async Task VoteUnbanAsync_UserNotBanned_DoesNotChangeDatabase()
     {
         var dbContext = TestHelpers.CreateVoteDbContext();
-        dbContext.BannedVoters.Add(new BannedVoter { UserId = 9999L });
-        dbContext.BannedVoters.Add(new BannedVoter { UserId = 9998L });
-        await dbContext.SaveChangesAsync();
-        dbContext.ChangeTracker.Clear();
 
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
-        var targetUser1 = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
-        var targetUser2 = new UserMention(new Snowflake(9998L), "admin", 4321, null, new ImageHash("zzz"));
+        var targetUser = Mock.Of<IUser>(u =>
+            u.ID == new Snowflake(9999L) &&
+            u.Username == "target");
 
-        var messageCreateEventMock = new Mock<IMessage>();
-        messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
-        messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
-        messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
-        messageCreateEventMock.Setup(m => m.Content).Returns("!voteunban <@9999> <@9998>");
-        messageCreateEventMock.Setup(m => m.Mentions).Returns(new List<IUserMention> { targetUser1, targetUser2 });
+        var logger = new MockLogger<AdminCommands>();
 
-        var logger = new MockLogger<VoteUnbanCommand>();
-        var mockChannelApi = new Mock<IDiscordRestChannelAPI>();
-        mockChannelApi.Setup(m => m.CreateReactionAsync(It.IsAny<Snowflake>(), It.IsAny<Snowflake>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Verifiable();
+        var sut = new AdminCommands(
+            CreateFeedbackService(),
+            CreateAdminContext(),
+            Mock.Of<IDiscordRestChannelAPI>(),
+            dbContext,
+            logger);
 
-        var sut = new VoteUnbanCommand(dbContext, mockChannelApi.Object, logger);
-        await sut.HandleCommandAsync(messageCreateEventMock.Object);
+        await sut.VoteUnbanAsync(targetUser);
 
-        dbContext.BannedVoters.Count().Should().Be(2);
-        logger[LogLevel.Error].Should().Contain(message => message.Message.Contains("multiple users"));
-        mockChannelApi.Verify(m => m.CreateReactionAsync(It.Is<Snowflake>(s => s.Value == 1000L), It.Is<Snowflake>(s => s.Value == 1L), "❌", It.IsAny<CancellationToken>()));
-    }
-
-    [Test]
-    public async Task HandleCommandAsync_UserNotBanned_LogsError()
-    {
-        var dbContext = TestHelpers.CreateVoteDbContext();
-        var issuingUser = new User(new Snowflake(1337L), "admin", 1337, null, new ImageHash("zzz"));
-        var targetUser = new UserMention(new Snowflake(9999L), "admin", 1234, null, new ImageHash("zzz"));
-
-        var messageCreateEventMock = new Mock<IMessage>();
-        messageCreateEventMock.Setup(m => m.ChannelID).Returns(new Snowflake(1000L));
-        messageCreateEventMock.Setup(m => m.ID).Returns(new Snowflake(1L));
-        messageCreateEventMock.Setup(m => m.Author).Returns(issuingUser);
-        messageCreateEventMock.Setup(m => m.Content).Returns("!voteunban <@9999>");
-        messageCreateEventMock.Setup(m => m.Mentions).Returns(new List<IUserMention> { targetUser });
-
-        var logger = new MockLogger<VoteUnbanCommand>();
-        var mockChannelApi = new Mock<IDiscordRestChannelAPI>();
-        mockChannelApi.Setup(m => m.CreateReactionAsync(It.IsAny<Snowflake>(), It.IsAny<Snowflake>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Verifiable();
-
-        var sut = new VoteUnbanCommand(dbContext, mockChannelApi.Object, logger);
-        await sut.HandleCommandAsync(messageCreateEventMock.Object);
-
-        dbContext.BannedVoters.Count().Should().Be(0);
+        dbContext.BannedVoters.Should().BeEmpty();
         logger[LogLevel.Error].Should().Contain(message => message.Message.Contains("not banned"));
-        mockChannelApi.Verify(m => m.CreateReactionAsync(It.Is<Snowflake>(s => s.Value == 1000L), It.Is<Snowflake>(s => s.Value == 1L), "❌", It.IsAny<CancellationToken>()));
     }
 }
