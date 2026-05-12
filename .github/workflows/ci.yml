@@ -54,7 +54,7 @@ jobs:
       - name: End SonarScanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end
 
       - name: Publish
         run: dotnet publish FrogBot/FrogBot.csproj --no-restore -o .artifacts/ -c release /p:Version=${{ steps.gitversion.outputs.semVer }}
