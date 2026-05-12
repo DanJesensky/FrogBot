@@ -13,7 +13,7 @@ public class VoteDbContext(DbContextOptions<VoteDbContext> options) : DbContext(
     }
 
     public IQueryable<Vote> AdjustedVotes => Votes
-        .Where(v => !BannedVoters.Select(b => b.UserId).Contains(v.VoterId));
+        .Where(v => !BannedVoters.Any(b => b.UserId == v.VoterId));
 
     public DbSet<Vote> Votes { get; set; }
 
