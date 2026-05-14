@@ -16,4 +16,6 @@ public interface IVoteManager
     Task<long> GetScoreAsync(ulong userId);
 
     Task RemoveVotesAsync(ulong channel, ulong message, VoteType type);
+
+    Task<bool> IsVoterBannedAsync(ulong voter);
 }

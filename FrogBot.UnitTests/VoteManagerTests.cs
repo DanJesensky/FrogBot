@@ -84,6 +84,43 @@ public class VoteManagerTests
     [Test]
     [TestCase(VoteType.Upvote)]
     [TestCase(VoteType.Downvote)]
+    public async Task AddVoteAsync_VoterBanned_DoesNotRecordVote(VoteType voteType)
+    {
+        var dbContext = TestHelpers.CreateVoteDbContext();
+        dbContext.BannedVoters.Add(new BannedVoter { UserId = 4 });
+        await dbContext.SaveChangesAsync();
+
+        var sut = new VoteManager(dbContext, Mock.Of<ILogger<VoteManager>>());
+        await sut.AddVoteAsync(1, 2, 3, 4, voteType);
+
+        dbContext.Votes.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task IsVoterBannedAsync_CacheHit_ReturnsCachedResult()
+    {
+        var dbContext = TestHelpers.CreateVoteDbContext();
+        dbContext.BannedVoters.Add(new BannedVoter { UserId = 4 });
+        await dbContext.SaveChangesAsync();
+
+        var sut = new VoteManager(dbContext, Mock.Of<ILogger<VoteManager>>());
+
+        // First call hits the DB and populates the cache.
+        var firstResult = await sut.IsVoterBannedAsync(4);
+        firstResult.Should().BeTrue();
+
+        // Remove the record from the DB so that a live DB query would return false.
+        dbContext.BannedVoters.RemoveRange(dbContext.BannedVoters);
+        await dbContext.SaveChangesAsync();
+
+        // Second call must return the cached value (true), not the live DB value (false).
+        var secondResult = await sut.IsVoterBannedAsync(4);
+        secondResult.Should().BeTrue();
+    }
+
+    [Test]
+    [TestCase(VoteType.Upvote)]
+    [TestCase(VoteType.Downvote)]
     public async Task GetScoreAsync_IgnoresBannedUserVotes(VoteType voteType)
     {
         var dbContext = TestHelpers.CreateVoteDbContext();
