@@ -137,6 +137,11 @@ public class VoteAddResponder(
             r.HasCurrentUserReacted && MatchesEmoji(r.Emoji, emojiString));
     }
 
+    /// <summary>
+    /// Matches vote emoji strings against reaction emojis for both custom and Unicode forms.
+    /// For custom emojis, <paramref name="emojiString"/> may be either "name:id" or just "id".
+    /// For Unicode emojis, <paramref name="emojiString"/> is matched against emoji name/value.
+    /// </summary>
     private static bool MatchesEmoji(IPartialEmoji emoji, string emojiString)
     {
         // Custom emoji: string format is "name:id" — compare by numeric ID.
