@@ -10,6 +10,7 @@ using Moq;
 using NUnit.Framework;
 using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
+using Remora.Discord.API.Abstractions.Rest;
 using Remora.Rest.Core;
 
 namespace FrogBot.UnitTests;
@@ -23,11 +24,13 @@ public class VoteAgeResponderTests
         var messageRetriever = new Mock<IMessageRetriever>();
         var voteEmojiProvider = new Mock<IVoteEmojiProvider>();
         var quarantine = new Mock<ITikTokQuarantineManager>();
+        var messageApi = new Mock<IDiscordRestChannelAPI>();
         var @event = CreateAddEvent();
         var message = Mock.Of<IMessage>(m => m.Timestamp == DateTimeOffset.UtcNow - TimeSpan.FromDays(31));
 
         voteEmojiProvider.Setup(v => v.GetVoteTypeFromEmoji(It.IsAny<IPartialEmoji>())).Returns(VoteType.Upvote);
         messageRetriever.Setup(r => r.RetrieveMessageAsync(@event.ChannelID, @event.MessageID, default)).ReturnsAsync(message);
+        voteManager.Setup(v => v.IsVoterBannedAsync(It.IsAny<ulong>())).ReturnsAsync(false);
 
         var sut = new VoteAddResponder(
             Mock.Of<ILogger<VoteAddResponder>>(),
@@ -36,7 +39,8 @@ public class VoteAgeResponderTests
             voteManager.Object,
             messageRetriever.Object,
             voteEmojiProvider.Object,
-            quarantine.Object);
+            quarantine.Object,
+            messageApi.Object);
 
         var result = await sut.RespondAsync(@event);
 
@@ -51,6 +55,7 @@ public class VoteAgeResponderTests
         var messageRetriever = new Mock<IMessageRetriever>();
         var voteEmojiProvider = new Mock<IVoteEmojiProvider>();
         var quarantine = new Mock<ITikTokQuarantineManager>();
+        var messageApi = new Mock<IDiscordRestChannelAPI>();
         var @event = CreateAddEvent();
 
         var author = Mock.Of<IUser>(u =>
@@ -61,6 +66,7 @@ public class VoteAgeResponderTests
         voteEmojiProvider.Setup(v => v.GetVoteTypeFromEmoji(It.IsAny<IPartialEmoji>())).Returns(VoteType.Upvote);
         messageRetriever.Setup(r => r.RetrieveMessageAsync(@event.ChannelID, @event.MessageID, default)).ReturnsAsync(message);
         quarantine.Setup(q => q.GetSubstituteQuarantineAuthor(message)).Returns(author);
+        voteManager.Setup(v => v.IsVoterBannedAsync(It.IsAny<ulong>())).ReturnsAsync(false);
 
         var sut = new VoteAddResponder(
             Mock.Of<ILogger<VoteAddResponder>>(),
@@ -69,7 +75,8 @@ public class VoteAgeResponderTests
             voteManager.Object,
             messageRetriever.Object,
             voteEmojiProvider.Object,
-            quarantine.Object);
+            quarantine.Object,
+            messageApi.Object);
 
         var result = await sut.RespondAsync(@event);
 
