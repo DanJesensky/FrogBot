@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,6 +45,7 @@ public class VoteAddResponderTests
         message.Setup(m => m.ChannelID).Returns(new Snowflake(ChannelId));
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
+        message.Setup(m => m.Timestamp).Returns(DateTimeOffset.UtcNow);
         return message.Object;
     }
 
@@ -71,6 +73,7 @@ public class VoteAddResponderTests
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
         message.Setup(m => m.Reactions).Returns(new Optional<IReadOnlyList<IReaction>>(reactions));
+        message.Setup(m => m.Timestamp).Returns(DateTimeOffset.UtcNow);
         return message.Object;
     }
 
@@ -143,6 +146,7 @@ public class VoteAddResponderTests
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
         message.Setup(m => m.Reactions).Returns(new Optional<IReadOnlyList<IReaction>>(reactions));
+        message.Setup(m => m.Timestamp).Returns(DateTimeOffset.UtcNow);
         return message.Object;
     }
 
@@ -166,6 +170,7 @@ public class VoteAddResponderTests
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
         message.Setup(m => m.Reactions).Returns(new Optional<IReadOnlyList<IReaction>>(reactions));
+        message.Setup(m => m.Timestamp).Returns(DateTimeOffset.UtcNow);
         return message.Object;
     }
 
@@ -189,6 +194,7 @@ public class VoteAddResponderTests
         message.Setup(m => m.Mentions).Returns([]);
         message.Setup(m => m.Content).Returns(string.Empty);
         message.Setup(m => m.Reactions).Returns(new Optional<IReadOnlyList<IReaction>>(reactions));
+        message.Setup(m => m.Timestamp).Returns(DateTimeOffset.UtcNow);
         return message.Object;
     }
 
@@ -216,6 +222,7 @@ public class VoteAddResponderTests
         return new VoteAddResponder(
             logger ?? Mock.Of<ILogger<VoteAddResponder>>(),
             Options.Create(new FrogBotOptions { ServerId = serverId }),
+            Options.Create(new VoteOptions { MaximumMessageAge = TimeSpan.FromDays(30) }),
             voteManager ?? Mock.Of<IVoteManager>(),
             messageRetriever ?? Mock.Of<IMessageRetriever>(),
             voteEmojiProvider ?? CreateVoteEmojiProvider(),
