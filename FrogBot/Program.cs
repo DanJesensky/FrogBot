@@ -108,7 +108,7 @@ public static class Program
             .AddResponder<MessageEditResponder>()
             .AddChatResponder<TikTokChatResponder>();
 
-        services.AddDiscordCommands(enableSlash: true);
+        services.AddDiscordCommands(enableSlash: true, useDefaultCommandResponder: false);
         services.AddCommandTree()
             .WithCommandGroup<VotingCommands>()
             .WithCommandGroup<AdminCommands>()
