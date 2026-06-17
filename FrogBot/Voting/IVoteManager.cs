@@ -18,4 +18,6 @@ public interface IVoteManager
     Task RemoveVotesAsync(ulong channel, ulong message, VoteType type);
 
     Task<bool> IsVoterBannedAsync(ulong voter);
+
+    Task<bool> TrySpendPointsAsync(ulong userId, long cost, string? note = null);
 }

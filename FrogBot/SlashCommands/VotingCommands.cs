@@ -36,11 +36,10 @@ public class VotingCommands(
 
         count = Math.Max(1, Math.Min(count, 10));
 
-        var topPoints = await dbContext.AdjustedVotes.AsNoTracking()
-            .GroupBy(v => v.ReceiverId)
-            .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
-            .OrderByDescending(v => v.Total)
+        var topPoints = await dbContext.UserPointBalances.AsNoTracking()
+            .OrderByDescending(b => b.Balance)
             .Take(count)
+            .Select(b => new { Id = b.UserId, Total = b.Balance })
             .ToArrayAsync(CancellationToken);
 
         if (topPoints.Length == 0)
@@ -75,11 +74,10 @@ public class VotingCommands(
 
         count = Math.Max(1, Math.Min(count, 10));
 
-        var worstPoints = await dbContext.AdjustedVotes.AsNoTracking()
-            .GroupBy(v => v.ReceiverId)
-            .Select(v => new { Id = v.Key, Total = v.Sum(vote => (int)vote.VoteType) })
-            .OrderBy(v => v.Total)
+        var worstPoints = await dbContext.UserPointBalances.AsNoTracking()
+            .OrderBy(b => b.Balance)
             .Take(count)
+            .Select(b => new { Id = b.UserId, Total = b.Balance })
             .ToArrayAsync(CancellationToken);
 
         if (worstPoints.Length == 0)
@@ -87,10 +85,7 @@ public class VotingCommands(
             return await feedback.SendContextualNeutralAsync("There are no eligible users to display.", ct: CancellationToken);
         }
 
-        var totalUsers = await dbContext.AdjustedVotes
-            .Select(v => v.ReceiverId)
-            .Distinct()
-            .CountAsync(CancellationToken);
+        var totalUsers = await dbContext.UserPointBalances.CountAsync(CancellationToken);
 
         var index = totalUsers;
         var sb = new StringBuilder();
